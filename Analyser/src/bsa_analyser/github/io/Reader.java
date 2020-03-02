@@ -20,10 +20,16 @@ import javax.swing.JOptionPane;
 public class Reader {
 
 	private static String fastaFile;
+	private static LinkedList<String> vcfsParLST, vcfschildLST;
+	// Allow for multiple gffs for if the user wants to see how multiple annotations
+	// are implemented from their NGS pipeline or another's.
+	private static LinkedList<String> gffLST;
 
 	public Reader(File[] givenFasta) {
 		fastaReader(givenFasta);
+		vcfsReader(givenFasta);
 	}
+
 	/**
 	 * Sorts through a list of user given files and finds the fasta files. Since
 	 * only one file is permitted per analysis, the user is given the opportunity to
@@ -101,8 +107,97 @@ public class Reader {
 		}
 		return out;
 	}
-	
-	
+
+	/**
+	 * Sorts through a list of user given files and finds the vcfs files. The
+	 * parents are found by asking the user to specify which two files they are and
+	 * the children (F2) are found by taking the remaining files by default. files
+	 * are selected of type vcf, then the global vcf variable is set to be set to be
+	 * empty. If the parents are specified by not enough files are remaining for the
+	 * children, then another prompt appears asking the user to reselect their files
+	 * as not enough vcf were given.
+	 * 
+	 * @param givenVcfs a File[] containing various file types the user selects
+	 */
+	private static void vcfsReader(File[] givenVcfs) {
+		if (givenVcfs.length != 0) {
+			// 1. Gather the vcf files names in a list
+			LinkedList<String> vcfsLST = new LinkedList<String>();
+			for (int i = 0; i < givenVcfs.length; i++) {
+				if (givenVcfs[i].getName().endsWith(".vcf")) {
+					// Need to implement panel that selects which file is the correct out of
+					// fasta selected.
+					vcfsLST.add(givenVcfs[i].getName());
+				}
+			}
+
+			// 2. Check which files are the parent by asking the user to specify. By default
+			// the remaining ones are treated as children of the parents.
+			if (vcfsLST.size() > 3) {
+				// Holds the intersect of all the vcf files and the ones specified by the user
+				// as the parents which allows for them to be validated in the loop.
+				LinkedList<String> intersect = new LinkedList<String>();
+				while (intersect.size() != 2) {
+					String selectedFile = JOptionPane.showInputDialog(String.valueOf(vcfsLST.size())
+							+ " Select the parents (if any) out of the following files\n " + vcfsReaderHelper(givenVcfs)
+							+ "\n enter the files below seperated by a space i.e (p1.vcf p2.vcf)");
+
+					// If user hits cancel or ok on an empty string is set as the fastaFile and the
+					// loop is exited.
+					if (selectedFile == null) {
+						// Add dummy values to the intersect to end loop
+						intersect.add("hit1");
+						intersect.add("hit2");
+
+						vcfsParLST = new LinkedList<String>();
+					} else {
+						// Set the global list for parents to be empty so values can be added fresh.
+						vcfsParLST = new LinkedList<String>();
+
+						LinkedList<String> selectedVcfs = new LinkedList<String>();
+						String[] vcfs = selectedFile.split(" ");
+
+						for (int i = 0; i < vcfs.length; i++) {
+							selectedVcfs.add(vcfs[i]);
+							vcfsParLST.add(vcfs[i]);
+						}
+
+						// Find the intersect of the vcf lists.
+						intersect = new LinkedList<String>(selectedVcfs);
+						intersect.retainAll(vcfsLST);
+					}
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "not enough vcf files were given to account "
+						+ "for both the children and parents. Please supply at least three vcf files");
+				vcfsParLST = new LinkedList<String>();
+				vcfschildLST = new LinkedList<String>();
+			} 
+		}
+	}
+
+	/**
+	 * Helper method for vcfsReader(File[] givenVcfs) finds the names for each vcf
+	 * and returns them as a string that is ready for display on the JOptionPane.
+	 * 
+	 * @param givenVcfs
+	 * @return String representing names of all vcf files.
+	 */
+	private static String vcfsReaderHelper(File[] givenvcfs) {
+		String out = "";
+		if (givenvcfs.length != 0) {
+			for (int i = 0; i < givenvcfs.length; i++) {
+				if (givenvcfs[i].getName().endsWith(".vcf")) {
+					if (!(out.equals(""))) {
+						out = out + " " + givenvcfs[i].getName();
+					} else {
+						out = givenvcfs[i].getName();
+					}
+				}
+			}
+		}
+		return out;
+	}
 
 	/**
 	 * The getter method for the fastaFile selected by the user.
@@ -121,5 +216,4 @@ public class Reader {
 	public static void setFastaFile(String fastaFile) {
 		Reader.fastaFile = fastaFile;
 	}
-
 }

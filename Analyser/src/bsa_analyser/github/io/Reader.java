@@ -21,6 +21,9 @@ public class Reader {
 
 	private static String fastaFile;
 
+	public Reader() {
+		
+	}
 	/**
 	 * Sorts through a list of user given files and finds the fasta files. Since
 	 * only one file is permitted per analysis, the user is given the opportunity to
@@ -98,6 +101,8 @@ public class Reader {
 		}
 		return out;
 	}
+	
+	
 
 	/**
 	 * The getter method for the fastaFile selected by the user.

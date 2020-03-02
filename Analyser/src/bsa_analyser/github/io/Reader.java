@@ -21,8 +21,8 @@ public class Reader {
 
 	private static String fastaFile;
 
-	public Reader() {
-		
+	public Reader(File[] givenFasta) {
+		fastaReader(givenFasta);
 	}
 	/**
 	 * Sorts through a list of user given files and finds the fasta files. Since

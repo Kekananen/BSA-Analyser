@@ -20,7 +20,7 @@ import javax.swing.JOptionPane;
 public class Reader {
 
 	private static String fastaFile;
-	private static LinkedList<String> vcfsParLST, vcfschildLST;
+	private static LinkedList<String> vcfsParLST, vcfsChildLST;
 	// Allow for multiple gffs for if the user wants to see how multiple annotations
 	// are implemented from their NGS pipeline or another's.
 	private static LinkedList<String> gffLST;
@@ -133,10 +133,12 @@ public class Reader {
 
 			// 2. Check which files are the parent by asking the user to specify. By default
 			// the remaining ones are treated as children of the parents.
-			if (vcfsLST.size() > 3) {
+			if (vcfsLST.size() >= 3) {
 				// Holds the intersect of all the vcf files and the ones specified by the user
 				// as the parents which allows for them to be validated in the loop.
 				LinkedList<String> intersect = new LinkedList<String>();
+				//Holds the children which are all files minus the intersect
+				LinkedList<String> children = new LinkedList<String>();
 				while (intersect.size() != 2) {
 					String selectedFile = JOptionPane.showInputDialog(String.valueOf(vcfsLST.size())
 							+ " Select the parents (if any) out of the following files\n " + vcfsReaderHelper(givenVcfs)
@@ -150,6 +152,7 @@ public class Reader {
 						intersect.add("hit2");
 
 						vcfsParLST = new LinkedList<String>();
+						vcfsChildLST = new LinkedList<String>();
 					} else {
 						// Set the global list for parents to be empty so values can be added fresh.
 						vcfsParLST = new LinkedList<String>();
@@ -165,13 +168,18 @@ public class Reader {
 						// Find the intersect of the vcf lists.
 						intersect = new LinkedList<String>(selectedVcfs);
 						intersect.retainAll(vcfsLST);
+						// Find the children vcf files.
+						children = new LinkedList<String>(vcfsLST);
+						children.removeAll(selectedVcfs);
+						
+						vcfsChildLST = children;
 					}
 				}
 			} else {
 				JOptionPane.showMessageDialog(null, "not enough vcf files were given to account "
 						+ "for both the children and parents. Please supply at least three vcf files");
 				vcfsParLST = new LinkedList<String>();
-				vcfschildLST = new LinkedList<String>();
+				vcfsChildLST = new LinkedList<String>();
 			} 
 		}
 	}

@@ -28,6 +28,7 @@ public class Reader {
 	public Reader(File[] givenFasta) {
 		fastaReader(givenFasta);
 		vcfsReader(givenFasta);
+		gffReader(givenFasta);
 	}
 
 	/**
@@ -137,7 +138,7 @@ public class Reader {
 				// Holds the intersect of all the vcf files and the ones specified by the user
 				// as the parents which allows for them to be validated in the loop.
 				LinkedList<String> intersect = new LinkedList<String>();
-				//Holds the children which are all files minus the intersect
+				// Holds the children which are all files minus the intersect
 				LinkedList<String> children = new LinkedList<String>();
 				while (intersect.size() != 2) {
 					String selectedFile = JOptionPane.showInputDialog(String.valueOf(vcfsLST.size())
@@ -171,7 +172,7 @@ public class Reader {
 						// Find the children vcf files.
 						children = new LinkedList<String>(vcfsLST);
 						children.removeAll(selectedVcfs);
-						
+
 						vcfsChildLST = children;
 					}
 				}
@@ -180,7 +181,7 @@ public class Reader {
 						+ "for both the children and parents. Please supply at least three vcf files");
 				vcfsParLST = new LinkedList<String>();
 				vcfsChildLST = new LinkedList<String>();
-			} 
+			}
 		}
 	}
 
@@ -208,6 +209,37 @@ public class Reader {
 	}
 
 	/**
+	 * Sorts through a list of user given files and finds the gff or gff3 files. The
+	 * files are added to the global variable gffLST.
+	 * 
+	 * @param givenGffs a File[] containing various file types the user selects
+	 */
+	private static void gffReader(File[] givenGffs) {
+		if (givenGffs.length != 0) {
+			// 1. Gather the gff files names in a list
+			LinkedList<String> gffsLST = new LinkedList<String>();
+			for (int i = 0; i < givenGffs.length; i++) {
+				if (givenGffs[i].getName().endsWith(".gff") || givenGffs[i].getName().endsWith(".gff3")) {
+					// Need to implement panel that selects which file is the correct out of
+					// gffs selected.
+					gffsLST.add(givenGffs[i].getName());
+				}
+			}
+
+			// 2. Add all the found gff files to the gff list.
+			if (gffsLST.size() >= 1) {
+				gffLST = new LinkedList<String>();
+
+				for (int i = 0; i < gffsLST.size(); i++) {
+					gffLST.add(gffsLST.get(i));
+				}
+			} else {
+				gffLST = new LinkedList<String>();
+			}
+		}
+	}
+
+	/**
 	 * The getter method for the fastaFile selected by the user.
 	 * 
 	 * @return fasta file selected by user.
@@ -224,7 +256,7 @@ public class Reader {
 	public static void setFastaFile(String fastaFile) {
 		Reader.fastaFile = fastaFile;
 	}
-	
+
 	/**
 	 * The getter method for the vcf children files.
 	 * 
@@ -235,15 +267,17 @@ public class Reader {
 	}
 
 	/**
-	 * The setter method for the vcfs Children Files. Sets the variable for the vcf children files.
+	 * The setter method for the vcfs Children Files. Sets the variable for the vcf
+	 * children files.
+	 * 
 	 * @param vcfsChildLST
 	 */
 	public static void setVcfsChildLST(LinkedList<String> vcfsChildLST) {
 		Reader.vcfsChildLST = vcfsChildLST;
 	}
-	
+
 	/**
-	 * The getter method for the vcf parent files. 
+	 * The getter method for the vcf parent files.
 	 * 
 	 * @return vcf parent files.
 	 */
@@ -252,10 +286,12 @@ public class Reader {
 	}
 
 	/**
-	 * The setter method for the vcfs Parent Files. Sets the variable for the vcf parent files selected by the user.
+	 * The setter method for the vcfs Parent Files. Sets the variable for the vcf
+	 * parent files selected by the user.
+	 * 
 	 * @param vcfsParLST
 	 */
-	public static void setVcfsChildLST(LinkedList<String> vcfsParLST) {
+	public static void setVcfsParLST(LinkedList<String> vcfsParLST) {
 		Reader.vcfsParLST = vcfsParLST;
 	}
 
@@ -269,7 +305,9 @@ public class Reader {
 	}
 
 	/**
-	 * The setter method for the gff Files. Sets the variable for the gff children files.
+	 * The setter method for the gff Files. Sets the variable for the gff children
+	 * files.
+	 * 
 	 * @param gffLST
 	 */
 	public static void setGffLST(LinkedList<String> gffLST) {

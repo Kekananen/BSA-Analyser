@@ -224,4 +224,55 @@ public class Reader {
 	public static void setFastaFile(String fastaFile) {
 		Reader.fastaFile = fastaFile;
 	}
+	
+	/**
+	 * The getter method for the vcf children files.
+	 * 
+	 * @return vcf children files.
+	 */
+	public static LinkedList<String> getVcfsChildLST() {
+		return vcfsChildLST;
+	}
+
+	/**
+	 * The setter method for the vcfs Children Files. Sets the variable for the vcf children files.
+	 * @param vcfsChildLST
+	 */
+	public static void setVcfsChildLST(LinkedList<String> vcfsChildLST) {
+		Reader.vcfsChildLST = vcfsChildLST;
+	}
+	
+	/**
+	 * The getter method for the vcf parent files. 
+	 * 
+	 * @return vcf parent files.
+	 */
+	public static LinkedList<String> getVcfsParLST() {
+		return vcfsParLST;
+	}
+
+	/**
+	 * The setter method for the vcfs Parent Files. Sets the variable for the vcf parent files selected by the user.
+	 * @param vcfsParLST
+	 */
+	public static void setVcfsChildLST(LinkedList<String> vcfsParLST) {
+		Reader.vcfsParLST = vcfsParLST;
+	}
+
+	/**
+	 * The getter method for the gff Files selected by the user.
+	 * 
+	 * @return gff file selected by user.
+	 */
+	public static LinkedList<String> getGffLST() {
+		return gffLST;
+	}
+
+	/**
+	 * The setter method for the gff Files. Sets the variable for the gff children files.
+	 * @param gffLST
+	 */
+	public static void setGffLST(LinkedList<String> gffLST) {
+		Reader.gffLST = gffLST;
+	}
 }

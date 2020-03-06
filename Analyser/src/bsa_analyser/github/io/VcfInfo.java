@@ -28,7 +28,7 @@ public class VcfInfo {
 	/**
 	 * Finds the total number of variants in the file.
 	 * 
-	 * @param givenVcf
+	 * @param givenVcf a vcf file
 	 * @return an integer representing the size of the file
 	 */
 	public static int getVariantCnt(String givenVcf) {
@@ -76,7 +76,7 @@ public class VcfInfo {
 	 * 
 	 * AC.raw.vcf WSS1849.raw.vcf
 	 * 
-	 * @param givenVcf
+	 * @param givenVcf a vcf file
 	 * @return Integer representing the number of substitution mutations in the vcf
 	 *         file
 	 */
@@ -94,7 +94,6 @@ public class VcfInfo {
 
 					// If they are the same length then it is a substitution mutation.
 					if (obs1.length() == obs2.length() && !(obs1.equals(obs2))) {
-						System.out.println(line);
 						cnt++;
 					}
 				}

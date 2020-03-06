@@ -54,11 +54,10 @@ public class VcfInfo {
 	}
 
 	/**
+	 * Gets the information from a desired vcf file and stores it into a list.
 	 * 
-	 * AC.raw.vcf WSS1849.raw.vcf
-	 * 
-	 * @param givenVcf
-	 * @return
+	 * @param givenVcf a vcf file
+	 * @return LinkedList containing the file information
 	 */
 	public static LinkedList<String> getFileInfo(String givenVcf) {
 		LinkedList<String> out = new LinkedList<String>();
@@ -70,7 +69,7 @@ public class VcfInfo {
 				out.add(line);
 				line = br.readLine();
 			}
-			
+
 			return out;
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, e);

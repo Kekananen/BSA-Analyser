@@ -43,19 +43,9 @@ public class Reader {
 	 */
 	private static void fastaReader(File[] givenFasta) {
 		if (givenFasta.length != 0) {
-			// 1. Check if only one fasta file has been loaded and if not then ask the user
-			// which fasta file they want to choose via a JOptionPane dialog box.
-			// 2. Gather the fasta files names in a list
-			LinkedList<String> fastaLST = new LinkedList<String>();
-			// If the list of fasta files selected if larger than 1 then make the user
-			// chose, else then take the only file
-			for (int i = 0; i < givenFasta.length; i++) {
-				if (givenFasta[i].getName().endsWith(".fasta") || givenFasta[i].getName().endsWith(".fa")) {
-					// Need to implement panel that selects which file is the correct out of
-					// fasta selected.
-					fastaLST.add(givenFasta[i].getName());
-				}
-			}
+			// 1. Gather the fasta files names in a list			
+			String[] endings = {".fasta", "fa"};
+			LinkedList<String> fastaLST = fileSorter(givenFasta, endings);
 
 			// 3. If more than 1 fasta was uploaded the user must chose which fasta they
 			// meant to chose for the analysis they are running a the moment.
@@ -123,14 +113,17 @@ public class Reader {
 	private static void vcfsReader(File[] givenVcfs) {
 		if (givenVcfs.length != 0) {
 			// 1. Gather the vcf files names in a list
-			LinkedList<String> vcfsLST = new LinkedList<String>();
-			for (int i = 0; i < givenVcfs.length; i++) {
-				if (givenVcfs[i].getName().endsWith(".vcf")) {
-					// Need to implement panel that selects which file is the correct out of
-					// fasta selected.
-					vcfsLST.add(givenVcfs[i].getName());
-				}
-			}
+			String[] endings = {".vcf"};
+			LinkedList<String> vcfsLST = fileSorter(givenVcfs, endings);
+			System.out.println(vcfsLST);
+//			LinkedList<String> vcfsLST = new LinkedList<String>();
+//			for (int i = 0; i < givenVcfs.length; i++) {
+//				if (givenVcfs[i].getName().endsWith(".vcf")) {
+//					// Need to implement panel that selects which file is the correct out of
+//					// fasta selected.
+//					vcfsLST.add(givenVcfs[i].getName());
+//				}
+//			}
 
 			// 2. Check which files are the parent by asking the user to specify. By default
 			// the remaining ones are treated as children of the parents.
@@ -217,14 +210,16 @@ public class Reader {
 	private static void gffReader(File[] givenGffs) {
 		if (givenGffs.length != 0) {
 			// 1. Gather the gff files names in a list
-			LinkedList<String> gffsLST = new LinkedList<String>();
-			for (int i = 0; i < givenGffs.length; i++) {
-				if (givenGffs[i].getName().endsWith(".gff") || givenGffs[i].getName().endsWith(".gff3")) {
-					// Need to implement panel that selects which file is the correct out of
-					// gffs selected.
-					gffsLST.add(givenGffs[i].getName());
-				}
-			}
+			String[] endings = {".gff", ".gff3"};
+			LinkedList<String> gffsLST = fileSorter(givenGffs, endings);
+//			LinkedList<String> gffsLST = new LinkedList<String>();
+//			for (int i = 0; i < givenGffs.length; i++) {
+//				if (givenGffs[i].getName().endsWith(".gff") || givenGffs[i].getName().endsWith(".gff3")) {
+//					// Need to implement panel that selects which file is the correct out of
+//					// gffs selected.
+//					gffsLST.add(givenGffs[i].getName());
+//				}
+//			}
 
 			// 2. Add all the found gff files to the gff list.
 			if (gffsLST.size() >= 1) {
@@ -237,6 +232,30 @@ public class Reader {
 				gffLST = new LinkedList<String>();
 			}
 		}
+	}
+
+	/**
+	 * Takes in a list of files and returns a new list of files based upon the other
+	 * given list of specified file ending types. This method is locally used in
+	 * finding the gff, vcf, and fasta files.
+	 * 
+	 * @param givenfiles a list of user selected files
+	 * @param types      a list of endings to the files desired to be selected
+	 * @return a LinkedList<String> of filtered list of all files found with those
+	 *         endings
+	 */
+	private static LinkedList<String> fileSorter(File[] givenfiles, String[] types) {
+		LinkedList<String> filesLST = new LinkedList<String>();
+		// For every file in a user selected list and the selected types, if the ending
+		// matches add it to the return list.
+		for (int i = 0; i < givenfiles.length; i++) {
+			for (int j = 0; j < types.length; j++) {
+				if (givenfiles[i].getName().endsWith(types[j])) {
+					filesLST.add(givenfiles[i].getName());
+				}
+			}
+		}
+		return filesLST;
 	}
 
 	/**

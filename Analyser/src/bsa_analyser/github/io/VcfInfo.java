@@ -53,14 +53,34 @@ public class VcfInfo {
 		return 0;
 	}
 
-	public static String[] getFileInfo(String givenVcf) {
-		// Todo
-		return null;
+	/**
+	 * 
+	 * AC.raw.vcf WSS1849.raw.vcf
+	 * 
+	 * @param givenVcf
+	 * @return
+	 */
+	public static LinkedList<String> getFileInfo(String givenVcf) {
+		LinkedList<String> out = new LinkedList<String>();
+		// 1. Make a BufferedReader for each file.
+		BufferedReader br = InfoPrep(givenVcf);
+		try {
+			String line = br.readLine();
+			while (line != null) {
+				out.add(line);
+				line = br.readLine();
+			}
+			
+			return out;
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, e);
+		}
+		return out;
 	}
 
 	/**
-	 * Finds the instertion mutations in the vcf by looking through each line and only
-	 * counting the variants that are of a lesser length.  
+	 * Finds the instertion mutations in the vcf by looking through each line and
+	 * only counting the variants that are of a lesser length.
 	 * 
 	 * @param givenVcf a vcf file
 	 * @return Integer representing the number of substitution mutations in the vcf
@@ -106,7 +126,7 @@ public class VcfInfo {
 
 	/**
 	 * Finds the deletion mutations in the vcf by looking through each line and only
-	 * counting the variants that are of a greater length.  
+	 * counting the variants that are of a greater length.
 	 * 
 	 * @param givenVcf a vcf file
 	 * @return Integer representing the number of substitution mutations in the vcf

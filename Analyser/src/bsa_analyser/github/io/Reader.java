@@ -43,8 +43,8 @@ public class Reader {
 	 */
 	private static void fastaReader(File[] givenFasta) {
 		if (givenFasta.length != 0) {
-			// 1. Gather the fasta files names in a list			
-			String[] endings = {".fasta", "fa"};
+			// 1. Gather the fasta files names in a list
+			String[] endings = { ".fasta", "fa" };
 			LinkedList<String> fastaLST = fileSorter(givenFasta, endings);
 
 			// 3. If more than 1 fasta was uploaded the user must chose which fasta they
@@ -54,7 +54,7 @@ public class Reader {
 				// Continually ask the user for the correct file until they provide one or exit.
 				while (!fastaLST.contains(selectedFile)) {
 					selectedFile = JOptionPane.showInputDialog(String.valueOf(fastaLST.size())
-							+ " fasta files given instead of 1.\n " + fastaReaderHelper(givenFasta)
+							+ " fasta files given instead of 1.\n " + fileReaderHelper(givenFasta, endings)
 							+ "\nPlease type the reference genome file you want for the analysis below");
 					// If user hits cancel or ok on an empty string is set as the fastaFile and the
 					// loop is exited.
@@ -76,30 +76,6 @@ public class Reader {
 	}
 
 	/**
-	 * Helper method for fastaReader(File[] givenFasta) finds the names for each
-	 * fasta and returns them as a string that is ready for display on the
-	 * JOptionPane.
-	 * 
-	 * @param givenFasta
-	 * @return String representing names of all fasta files.
-	 */
-	private static String fastaReaderHelper(File[] givenFasta) {
-		String out = "";
-		if (givenFasta.length != 0) {
-			for (int i = 0; i < givenFasta.length; i++) {
-				if (givenFasta[i].getName().endsWith(".fasta") || givenFasta[i].getName().endsWith(".fa")) {
-					if (!(out.equals(""))) {
-						out = out + " " + givenFasta[i].getName();
-					} else {
-						out = givenFasta[i].getName();
-					}
-				}
-			}
-		}
-		return out;
-	}
-
-	/**
 	 * Sorts through a list of user given files and finds the vcfs files. The
 	 * parents are found by asking the user to specify which two files they are and
 	 * the children (F2) are found by taking the remaining files by default. files
@@ -113,17 +89,8 @@ public class Reader {
 	private static void vcfsReader(File[] givenVcfs) {
 		if (givenVcfs.length != 0) {
 			// 1. Gather the vcf files names in a list
-			String[] endings = {".vcf"};
+			String[] endings = { ".vcf" };
 			LinkedList<String> vcfsLST = fileSorter(givenVcfs, endings);
-			System.out.println(vcfsLST);
-//			LinkedList<String> vcfsLST = new LinkedList<String>();
-//			for (int i = 0; i < givenVcfs.length; i++) {
-//				if (givenVcfs[i].getName().endsWith(".vcf")) {
-//					// Need to implement panel that selects which file is the correct out of
-//					// fasta selected.
-//					vcfsLST.add(givenVcfs[i].getName());
-//				}
-//			}
 
 			// 2. Check which files are the parent by asking the user to specify. By default
 			// the remaining ones are treated as children of the parents.
@@ -135,7 +102,8 @@ public class Reader {
 				LinkedList<String> children = new LinkedList<String>();
 				while (intersect.size() != 2) {
 					String selectedFile = JOptionPane.showInputDialog(String.valueOf(vcfsLST.size())
-							+ " Select the parents (if any) out of the following files\n " + vcfsReaderHelper(givenVcfs)
+							+ " Select the parents (if any) out of the following files\n "
+							+ fileReaderHelper(givenVcfs, endings)
 							+ "\n enter the files below seperated by a space i.e (p1.vcf p2.vcf)");
 
 					// If user hits cancel or ok on an empty string is set as the fastaFile and the
@@ -179,29 +147,6 @@ public class Reader {
 	}
 
 	/**
-	 * Helper method for vcfsReader(File[] givenVcfs) finds the names for each vcf
-	 * and returns them as a string that is ready for display on the JOptionPane.
-	 * 
-	 * @param givenVcfs
-	 * @return String representing names of all vcf files.
-	 */
-	private static String vcfsReaderHelper(File[] givenvcfs) {
-		String out = "";
-		if (givenvcfs.length != 0) {
-			for (int i = 0; i < givenvcfs.length; i++) {
-				if (givenvcfs[i].getName().endsWith(".vcf")) {
-					if (!(out.equals(""))) {
-						out = out + " " + givenvcfs[i].getName();
-					} else {
-						out = givenvcfs[i].getName();
-					}
-				}
-			}
-		}
-		return out;
-	}
-
-	/**
 	 * Sorts through a list of user given files and finds the gff or gff3 files. The
 	 * files are added to the global variable gffLST.
 	 * 
@@ -210,16 +155,8 @@ public class Reader {
 	private static void gffReader(File[] givenGffs) {
 		if (givenGffs.length != 0) {
 			// 1. Gather the gff files names in a list
-			String[] endings = {".gff", ".gff3"};
+			String[] endings = { ".gff", ".gff3" };
 			LinkedList<String> gffsLST = fileSorter(givenGffs, endings);
-//			LinkedList<String> gffsLST = new LinkedList<String>();
-//			for (int i = 0; i < givenGffs.length; i++) {
-//				if (givenGffs[i].getName().endsWith(".gff") || givenGffs[i].getName().endsWith(".gff3")) {
-//					// Need to implement panel that selects which file is the correct out of
-//					// gffs selected.
-//					gffsLST.add(givenGffs[i].getName());
-//				}
-//			}
 
 			// 2. Add all the found gff files to the gff list.
 			if (gffsLST.size() >= 1) {
@@ -232,6 +169,33 @@ public class Reader {
 				gffLST = new LinkedList<String>();
 			}
 		}
+	}
+	
+	/**
+	 * Helper method for reader methods in Reader class. Finds the names for each
+	 * file that matches the type list and returns them as a string that is ready
+	 * for display on the JOptionPane.
+	 * 
+	 * @param givenfiles a list of user selected files
+	 * @param types      a list of endings to the files desired to be selected
+	 * @return a string representing names of all vcf files
+	 */
+	private static String fileReaderHelper(File[] givenFiles, String[] types) {
+		String out = "";
+		if (givenFiles.length != 0) {
+			for (int i = 0; i < givenFiles.length; i++) {
+				for (int j = 0; j < types.length; j++) {
+					if (givenFiles[i].getName().endsWith(types[j])) {
+						if (!(out.equals(""))) {
+							out = out + " " + givenFiles[i].getName();
+						} else {
+							out = givenFiles[i].getName();
+						}
+					}
+				}
+			}
+		}
+		return out;
 	}
 
 	/**
@@ -257,7 +221,7 @@ public class Reader {
 		}
 		return filesLST;
 	}
-
+	
 	/**
 	 * The getter method for the fastaFile selected by the user.
 	 * 

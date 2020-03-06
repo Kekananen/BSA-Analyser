@@ -1,7 +1,7 @@
 package bsa_analyser.github.io;
 
 import java.io.BufferedReader;
-import java.io.File;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -31,18 +31,18 @@ public class VcfInfo {
 	 * @param givenVcf
 	 * @return an integer representing the size of the file
 	 */
-	public int getVariantCnt(String givenVcf) {
+	public static int getVariantCnt(String givenVcf) {
 		int cnt = 0;
 		// 1. Make a BufferedReader for each file.
 		BufferedReader br = InfoPrep(givenVcf);
 		try {
-			while (br.readLine() != null) {
+			String line = br.readLine();
+			while (line != null) {
 				// 2. Count all lines that are not containing metadata
-				if (br.readLine().startsWith("#") == false) {
-					System.out.println(br.readLine());
+				if (line.startsWith("#") == false) {
 					cnt++;
 				}
-				br.readLine();
+				line = br.readLine();
 			}
 
 			return cnt;
@@ -53,29 +53,60 @@ public class VcfInfo {
 		return 0;
 	}
 
-	public String getFileName(String givenVcf) {
+	public static String[] getFileInfo(String givenVcf) {
 		// Todo
 		return null;
 	}
 
-	public String[] getFileInfo(String givenVcf) {
+	public static String getInsMutCnt(String givenVcf) {
 		// Todo
 		return null;
 	}
-	
-	public String getInsMutCnt(String givenVcf) {
+
+	public static String getDelMutCnt(String givenVcf) {
 		// Todo
 		return null;
 	}
-	
-	public String getDelMutCnt(String givenVcf) {
-		// Todo
-		return null;
-	}
-	
-	public String getSubMutCnt(String givenVcf) {
-		// Todo
-		return null;
+
+	/**
+	 * Finds the substitution mutations in the vcf by looking through each line and
+	 * only counting the variants that are of the same length, and are not made up
+	 * of identical bases. This will catch even substitutions greater than length 1
+	 * though the likelihood is extremely low.
+	 * 
+	 * AC.raw.vcf WSS1849.raw.vcf
+	 * 
+	 * @param givenVcf
+	 * @return Integer representing the number of substitution mutations in the vcf
+	 *         file
+	 */
+	public static int getSubMutCnt(String givenVcf) {
+		int cnt = 0;
+		// 1. Make a BufferedReader for each file.
+		BufferedReader br = InfoPrep(givenVcf);
+		try {
+			String line = br.readLine();
+			while (line != null) {
+				// 2. Count all lines that are not containing metadata
+				if (line.startsWith("#") == false) {
+					String obs1 = line.split("\t")[3];
+					String obs2 = line.split("\t")[4];
+
+					// If they are the same length then it is a substitution mutation.
+					if (obs1.length() == obs2.length() && !(obs1.equals(obs2))) {
+						System.out.println(line);
+						cnt++;
+					}
+				}
+				line = br.readLine();
+			}
+
+			return cnt;
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, e);
+		}
+
+		return 0;
 	}
 
 	/**

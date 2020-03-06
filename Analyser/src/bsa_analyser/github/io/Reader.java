@@ -13,8 +13,7 @@ import javax.swing.JOptionPane;
  * parents, ~four vcfs representing the child bulk populations, and the gff
  * annotation file.
  * 
- * Last updated 3-2-2020
- * Updated 3-6-2020
+ * Last updated 3-2-2020 Updated 3-6-2020
  * 
  * @author Kathryn Kananen
  *
@@ -103,10 +102,11 @@ public class Reader {
 				// Holds the children which are all files minus the intersect
 				LinkedList<String> children = new LinkedList<String>();
 				while (intersect.size() != 2) {
-					String selectedFile = JOptionPane.showInputDialog(String.valueOf(vcfsLST.size())
-							+ " Select the parents (if any) out of the following files\n "
-							+ fileReaderHelper(givenVcfs, endings)
-							+ "\n enter the files below seperated by a space i.e (p1.vcf p2.vcf)");
+					String selectedFile = JOptionPane
+							.showInputDialog(String.valueOf(vcfsLST.size()) + " vcf files have been uploaded."
+									+ " Select the parents (if any) out of the following files\n "
+									+ fileReaderHelper(givenVcfs, endings)
+									+ "\n enter the files below seperated by a space i.e (p1.vcf p2.vcf)");
 
 					// If user hits cancel or ok on an empty string is set as the fastaFile and the
 					// loop is exited.
@@ -172,7 +172,7 @@ public class Reader {
 			}
 		}
 	}
-	
+
 	/**
 	 * Helper method for reader methods in Reader class. Finds the names for each
 	 * file that matches the type list and returns them as a string that is ready
@@ -190,7 +190,7 @@ public class Reader {
 					if (givenFiles[i].getName().endsWith(types[j])) {
 						if (!(out.equals("")) && i % 3 == 0) {
 							out = out + " " + givenFiles[i].getName() + "\n";
-						} else if(!(out.equals("") && i % 3 == 0)) {
+						} else if (!(out.equals("") && i % 3 == 0)) {
 							out = out + " " + givenFiles[i].getName();
 						} else {
 							out = givenFiles[i].getName();
@@ -225,7 +225,7 @@ public class Reader {
 		}
 		return filesLST;
 	}
-	
+
 	/**
 	 * The getter method for the fastaFile selected by the user.
 	 * 

@@ -1,6 +1,7 @@
 package bsa_analyser.github.io;
 
 import java.io.File;
+
 import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
@@ -187,7 +188,9 @@ public class Reader {
 			for (int i = 0; i < givenFiles.length; i++) {
 				for (int j = 0; j < types.length; j++) {
 					if (givenFiles[i].getName().endsWith(types[j])) {
-						if (!(out.equals(""))) {
+						if (!(out.equals("")) && i % 3 == 0) {
+							out = out + " " + givenFiles[i].getName() + "\n";
+						} else if(!(out.equals("") && i % 3 == 0)) {
 							out = out + " " + givenFiles[i].getName();
 						} else {
 							out = givenFiles[i].getName();

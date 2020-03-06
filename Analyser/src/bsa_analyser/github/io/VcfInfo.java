@@ -58,9 +58,50 @@ public class VcfInfo {
 		return null;
 	}
 
-	public static String getInsMutCnt(String givenVcf) {
-		// Todo
-		return null;
+	/**
+	 * Finds the instertion mutations in the vcf by looking through each line and only
+	 * counting the variants that are of a lesser length.  
+	 * 
+	 * @param givenVcf a vcf file
+	 * @return Integer representing the number of substitution mutations in the vcf
+	 *         file
+	 */
+	public static int getInsMutCnt(String givenVcf) {
+		int cnt = 0;
+		// 1. Make a BufferedReader for each file.
+		BufferedReader br = InfoPrep(givenVcf);
+		try {
+			String line = br.readLine();
+			while (line != null) {
+				// 2. Count all lines that are not containing metadata
+				if (line.startsWith("#") == false) {
+					String obs = line.split("\t")[3];
+					String alt = line.split("\t")[4];
+
+					// If they are the same length then it is a deletion mutation.
+					if (obs.length() < alt.length() && !(obs.equals(alt)) && (alt.indexOf(",") == -1)) {
+						cnt++;
+					}
+
+					// Some of the variants have two possible observations so both must be checked.
+					if ((alt.indexOf(",") != -1)) {
+						String[] variants = alt.split(",");
+						for (int i = 0; i < variants.length; i++) {
+							if (obs.length() < variants[i].length() && !(obs.equals(variants[i]))) {
+								cnt++;
+							}
+						}
+					}
+				}
+				line = br.readLine();
+			}
+
+			return cnt;
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, e);
+		}
+
+		return 0;
 	}
 
 	/**
@@ -93,7 +134,6 @@ public class VcfInfo {
 						String[] variants = alt.split(",");
 						for (int i = 0; i < variants.length; i++) {
 							if (obs.length() > variants[i].length() && !(obs.equals(variants[i]))) {
-								System.out.println(line);
 								cnt++;
 							}
 						}

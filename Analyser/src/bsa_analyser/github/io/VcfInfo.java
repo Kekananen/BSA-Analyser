@@ -10,7 +10,7 @@ import javax.swing.JOptionPane;
 
 /**
  * Reads the information of the vcf files and creates some basic statistics
- * about the file such as size and same. This class assumes that files are
+ * about the file such as size and name. This class assumes that files are
  * valid.
  * 
  * Last updated 3-6-20
@@ -49,6 +49,7 @@ public class VcfInfo {
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, e);
 		}
+
 
 		return 0;
 	}

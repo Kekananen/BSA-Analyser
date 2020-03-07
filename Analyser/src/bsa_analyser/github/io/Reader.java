@@ -1,10 +1,13 @@
 package bsa_analyser.github.io;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
-
+import java.util.ArrayList;
 import java.util.LinkedList;
-
-import javax.swing.JOptionPane;
+import java.util.List;
 
 /**
  * This class deals solely with reading in and selecting the correct files for
@@ -12,14 +15,17 @@ import javax.swing.JOptionPane;
  * one fasta file representing the reference genome, ~two vcf representing the
  * parents, ~four vcfs representing the child bulk populations, and the gff
  * annotation file.
- * 
+ *
  * Last updated 3-2-2020 Updated 3-6-2020
- * 
+ *
  * @author Kathryn Kananen
  *
  */
 public class Reader {
 
+	static String selectedFile = "";
+
+	//public static Files[];
 	private static String fastaFile;
 	private static LinkedList<String> vcfsParLST, vcfsChildLST;
 	// Allow for multiple gffs for if the user wants to see how multiple annotations
@@ -34,31 +40,54 @@ public class Reader {
 
 	/**
 	 * Sorts through a list of user given files and finds the fasta files. Since
-	 * only one file is permitted per analysis, the user is given the opportunity to
-	 * correct a multiple file upload mistake and choose the correct file. The file
-	 * selected is then assigned to a global String variable. This method invokes a
-	 * helper method, fastaReaderHelper(File[] givenFasta). If no files are selected
-	 * of type fasta, then the global fasta variable is set to be "".
-	 * 
+	 * only one file is permitted per analysis, the user is given the
+	 * opportunity to correct a multiple file upload mistake and choose the
+	 * correct file. The file selected is then assigned to a global String
+	 * variable. This method invokes a helper method, fastaReaderHelper(File[]
+	 * givenFasta). If no files are selected of type fasta, then the global
+	 * fasta variable is set to be "".
+	 *
 	 * @param givenFasta a File[] containing various file types the user selects
 	 */
 	private static void fastaReader(File[] givenFasta) {
+
 		if (givenFasta.length != 0) {
-			// 1. Gather the fasta files names in a list
-			String[] endings = { ".fasta", "fa" };
+			// 1. Gather the fasta files names in a parentvcflist
+			String[] endings = {".fasta", "fa"};
 			LinkedList<String> fastaLST = fileSorter(givenFasta, endings);
 
 			// 3. If more than 1 fasta was uploaded the user must chose which fasta they
 			// meant to chose for the analysis they are running a the moment.
 			if (fastaLST.size() > 1) {
-				String selectedFile = "";
 				// Continually ask the user for the correct file until they provide one or exit.
 				while (!fastaLST.contains(selectedFile)) {
-					selectedFile = JOptionPane.showInputDialog(String.valueOf(fastaLST.size())
-							+ " fasta files given instead of 1.\n " + fileReaderHelper(givenFasta, endings)
-							+ "\nPlease type the reference genome file you want for the analysis below");
-					// If user hits cancel or ok on an empty string is set as the fastaFile and the
-					// loop is exited.
+					fileReaderHelper(givenFasta, endings);
+					JPanel jp = new JPanel();
+
+					for (String f : fastaLST) {
+						jp.add(new JButton(f.trim()));
+					}
+					//Used button so that the user will be able to click the fasta file of choice instead of typing it,
+					//as the user might be prone to error
+					for (int i = 0; i < jp.getComponentCount(); i++) {
+						String name = ((JButton) (jp.getComponent(i))).getText();
+						((JButton) (jp.getComponent(i))).addActionListener(new ActionListener() {
+																			   @Override
+																			   public void actionPerformed(ActionEvent e) {
+																				   selectedFile = name;
+																				   System.out.println(selectedFile);
+																				   SwingUtilities.getWindowAncestor(jp).setVisible(false);
+
+
+																			   }
+																		   }
+						);
+
+					}
+					JOptionPane.showOptionDialog(null, jp, String.valueOf(fastaLST.size())
+							+ " fasta files given instead of 1. "
+							+ "\nPlease type the reference genome file you want for the analysis below", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{}, null);
+
 					if (selectedFile == null) {
 						selectedFile = givenFasta[0].getName();
 
@@ -67,30 +96,31 @@ public class Reader {
 						fastaFile = selectedFile;
 					}
 				}
-			} else if (fastaLST.size() == 1) {
-				// Get the only file in the list
+			}else if (fastaLST.size() == 1) {
+				// Get the only file in the parentvcflist
 				fastaFile = fastaLST.get(0);
 			} else {
 				fastaFile = "";
 			}
 		}
 	}
-
 	/**
-	 * Sorts through a list of user given files and finds the vcfs files. The
-	 * parents are found by asking the user to specify which two files they are and
-	 * the children (F2) are found by taking the remaining files by default. files
-	 * are selected of type vcf, then the global vcf variable is set to be set to be
-	 * empty. If the parents are specified by not enough files are remaining for the
-	 * children, then another prompt appears asking the user to reselect their files
-	 * as not enough vcf were given.
-	 * 
-	 * @param givenVcfs a File[] containing various file types the user selects
+	 * Sorts through a list of user given files and finds the vcfs files.
+	 * The parents are found by asking the user to specify which two files
+	 * they are and the children (F2) are found by taking the remaining
+	 * files by default. files are selected of type vcf, then the global vcf
+	 * variable is set to be set to be empty. If the parents are specified
+	 * by not enough files are remaining for the children, then another
+	 * prompt appears asking the user to reselect their files as not enough
+	 * vcf were given.
+	 *
+	 * @param givenVcfs a File[] containing various file types the user
+	 * selects
 	 */
 	private static void vcfsReader(File[] givenVcfs) {
 		if (givenVcfs.length != 0) {
-			// 1. Gather the vcf files names in a list
-			String[] endings = { ".vcf" };
+			// 1. Gather the vcf files names in a parentvcflist
+			String[] endings = {".vcf"};
 			LinkedList<String> vcfsLST = fileSorter(givenVcfs, endings);
 
 			// 2. Check which files are the parent by asking the user to specify. By default
@@ -102,27 +132,67 @@ public class Reader {
 				// Holds the children which are all files minus the intersect
 				LinkedList<String> children = new LinkedList<String>();
 				while (intersect.size() != 2) {
-					String selectedFile = JOptionPane
-							.showInputDialog(String.valueOf(vcfsLST.size()) + " vcf files have been uploaded."
-									+ " Select the parents (if any) out of the following files\n "
-									+ fileReaderHelper(givenVcfs, endings)
-									+ "\n enter the files below seperated by a space i.e (p1.vcf p2.vcf)");
+/**
+ * Used Jlist for the VCF file, so that the user would be able to click and choose the parent VCF, instead of typing
+ */
+					ArrayList<String> parentvcflist=new ArrayList<>();
 
+					String VCFS = "";
+//File[] name=givenVcfs;
+					for (String file : vcfsLST) {
+						{
+							VCFS = file.trim();
+							//System.out.println(VCFS);
+						}
+						parentvcflist.add(VCFS);
+					}
+
+					JList list2 = new JList(parentvcflist.toArray()) {
+						@Override
+						public Dimension getPreferredScrollableViewportSize() {
+							Dimension dim = super.getPreferredScrollableViewportSize();
+							dim.width = 35;
+
+							return dim;
+
+						}
+					};
+					list2.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+
+					switch (JOptionPane.showOptionDialog(null, new JScrollPane(list2), "Please Choose Parent File", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, 0)) {
+						case JOptionPane.OK_OPTION:
+
+							break;
+
+					}
+					List<String> selectedVcfFiles=new ArrayList<>();
+					selectedVcfFiles= list2.getSelectedValuesList();
+					System.out.println(selectedVcfFiles);
+					intersect.addAll(selectedVcfFiles);
 					// If user hits cancel or ok on an empty string is set as the fastaFile and the
 					// loop is exited.
-					if (selectedFile == null) {
+
+					if ((selectedVcfFiles == null) || (selectedVcfFiles.isEmpty())) {
 						// Add dummy values to the intersect to end loop
+						// SwingUtilities.getWindowAncestor(dim).setVisible(false);
+
+						//was unable to catch the error if the user enters or click muitple file instead of two;
+
 						intersect.add("hit1");
 						intersect.add("hit2");
 
+
+
 						vcfsParLST = new LinkedList<String>();
 						vcfsChildLST = new LinkedList<String>();
+
+
 					} else {
-						// Set the global list for parents to be empty so values can be added fresh.
+						// Set the global parentvcflist for parents to be empty so values can be added fresh.
 						vcfsParLST = new LinkedList<String>();
 
 						LinkedList<String> selectedVcfs = new LinkedList<String>();
-						String[] vcfs = selectedFile.split(" ");
+						String[] vcfs = selectedVcfFiles.toArray(new String[selectedVcfFiles.size()]);
 
 						for (int i = 0; i < vcfs.length; i++) {
 							selectedVcfs.add(vcfs[i]);
@@ -130,14 +200,15 @@ public class Reader {
 						}
 
 						// Find the intersect of the vcf lists.
-						intersect = new LinkedList<String>(selectedVcfs);
+						intersect = new LinkedList<>(selectedVcfs);
 						intersect.retainAll(vcfsLST);
 						// Find the children vcf files.
-						children = new LinkedList<String>(vcfsLST);
+						children = new LinkedList<>(vcfsLST);
 						children.removeAll(selectedVcfs);
 
 						vcfsChildLST = children;
 					}
+					break;
 				}
 			} else {
 				JOptionPane.showMessageDialog(null, "not enough vcf files were given to account "
@@ -149,18 +220,18 @@ public class Reader {
 	}
 
 	/**
-	 * Sorts through a list of user given files and finds the gff or gff3 files. The
-	 * files are added to the global variable gffLST.
-	 * 
+	 * Sorts through a list of user given files and finds the gff or gff3 files.
+	 * The files are added to the global variable gffLST.
+	 *
 	 * @param givenGffs a File[] containing various file types the user selects
 	 */
 	private static void gffReader(File[] givenGffs) {
 		if (givenGffs.length != 0) {
-			// 1. Gather the gff files names in a list
-			String[] endings = { ".gff", ".gff3" };
+			// 1. Gather the gff files names in a parentvcflist
+			String[] endings = {".gff", ".gff3"};
 			LinkedList<String> gffsLST = fileSorter(givenGffs, endings);
 
-			// 2. Add all the found gff files to the gff list.
+			// 2. Add all the found gff files to the gff parentvcflist.
 			if (gffsLST.size() >= 1) {
 				gffLST = new LinkedList<String>();
 
@@ -174,12 +245,12 @@ public class Reader {
 	}
 
 	/**
-	 * Helper method for reader methods in Reader class. Finds the names for each
-	 * file that matches the type list and returns them as a string that is ready
-	 * for display on the JOptionPane.
-	 * 
-	 * @param givenfiles a list of user selected files
-	 * @param types      a list of endings to the files desired to be selected
+	 * Helper method for reader methods in Reader class. Finds the names for
+	 * each file that matches the type list and returns them as a string that is
+	 * ready for display on the JOptionPane.
+	 *
+	 * @param givenFiles a parentvcflist of user selected files
+	 * @param types a parentvcflist of endings to the files desired to be selected
 	 * @return a string representing names of all vcf files
 	 */
 	private static String fileReaderHelper(File[] givenFiles, String[] types) {
@@ -203,19 +274,19 @@ public class Reader {
 	}
 
 	/**
-	 * Takes in a list of files and returns a new list of files based upon the other
-	 * given list of specified file ending types. This method is locally used in
-	 * finding the gff, vcf, and fasta files.
-	 * 
-	 * @param givenfiles a list of user selected files
-	 * @param types      a list of endings to the files desired to be selected
-	 * @return a LinkedList<String> of filtered list of all files found with those
-	 *         endings
+	 * Takes in a list of files and returns a new list of files based upon the
+	 * other given list of specified file ending types. This method is locally
+	 * used in finding the gff, vcf, and fasta files.
+	 *
+	 * @param givenfiles a parentvcflist of user selected files
+	 * @param types a parentvcflist of endings to the files desired to be selected
+	 * @return a LinkedList<String> of filtered parentvcflist of all files found with
+	those endings
 	 */
 	private static LinkedList<String> fileSorter(File[] givenfiles, String[] types) {
 		LinkedList<String> filesLST = new LinkedList<String>();
-		// For every file in a user selected list and the selected types, if the ending
-		// matches add it to the return list.
+		// For every file in a user selected parentvcflist and the selected types, if the ending
+		// matches add it to the return parentvcflist.
 		for (int i = 0; i < givenfiles.length; i++) {
 			for (int j = 0; j < types.length; j++) {
 				if (givenfiles[i].getName().endsWith(types[j])) {
@@ -228,7 +299,7 @@ public class Reader {
 
 	/**
 	 * The getter method for the fastaFile selected by the user.
-	 * 
+	 *
 	 * @return fasta file selected by user.
 	 */
 	public static String getFastaFile() {
@@ -236,8 +307,9 @@ public class Reader {
 	}
 
 	/**
-	 * The setter method for the fastaFile. Sets the variable for the fasta file.
-	 * 
+	 * The setter method for the fastaFile. Sets the variable for the fasta
+	 * file.
+	 *
 	 * @param fastaFile
 	 */
 	public static void setFastaFile(String fastaFile) {
@@ -246,7 +318,7 @@ public class Reader {
 
 	/**
 	 * The getter method for the vcf children files.
-	 * 
+	 *
 	 * @return vcf children files.
 	 */
 	public static LinkedList<String> getVcfsChildLST() {
@@ -254,9 +326,9 @@ public class Reader {
 	}
 
 	/**
-	 * The setter method for the vcfs Children Files. Sets the variable for the vcf
-	 * children files.
-	 * 
+	 * The setter method for the vcfs Children Files. Sets the variable for the
+	 * vcf children files.
+	 *
 	 * @param vcfsChildLST
 	 */
 	public static void setVcfsChildLST(LinkedList<String> vcfsChildLST) {
@@ -265,7 +337,7 @@ public class Reader {
 
 	/**
 	 * The getter method for the vcf parent files.
-	 * 
+	 *
 	 * @return vcf parent files.
 	 */
 	public static LinkedList<String> getVcfsParLST() {
@@ -273,9 +345,9 @@ public class Reader {
 	}
 
 	/**
-	 * The setter method for the vcfs Parent Files. Sets the variable for the vcf
-	 * parent files selected by the user.
-	 * 
+	 * The setter method for the vcfs Parent Files. Sets the variable for the
+	 * vcf parent files selected by the user.
+	 *
 	 * @param vcfsParLST
 	 */
 	public static void setVcfsParLST(LinkedList<String> vcfsParLST) {
@@ -284,7 +356,7 @@ public class Reader {
 
 	/**
 	 * The getter method for the gff Files selected by the user.
-	 * 
+	 *
 	 * @return gff file selected by user.
 	 */
 	public static LinkedList<String> getGffLST() {
@@ -292,9 +364,9 @@ public class Reader {
 	}
 
 	/**
-	 * The setter method for the gff Files. Sets the variable for the gff children
-	 * files.
-	 * 
+	 * The setter method for the gff Files. Sets the variable for the gff
+	 * children files.
+	 *
 	 * @param gffLST
 	 */
 	public static void setGffLST(LinkedList<String> gffLST) {

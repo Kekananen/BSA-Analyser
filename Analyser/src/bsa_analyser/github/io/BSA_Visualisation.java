@@ -227,15 +227,33 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>
-
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {
+    
+     /**
+	 * Creates a file chooser window to allow the user to select a file
+	 * 
+	 * @return A list of user files
+	 */
+    public static File[] upload_files(){
         JFileChooser chooser = new JFileChooser();
         chooser.setMultiSelectionEnabled(true);
         chooser.showOpenDialog(new JFrame());
         File[] files = chooser.getSelectedFiles();
+        return files;
+    }
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {
+        //get the files from the upload files method. This allow the program to call
+        //this method to upload addtional files in case any files fail validation
+        File[] files = upload_files();
 
         for (File fn : files){
             if(fn.getName().endsWith("fasta")||(fn.getName().endsWith("vcf"))||(fn.getName().endsWith("gff"))||(fn.getName().endsWith("gff3"))){
+                //if file ends in .vcf send to the vcf content checker method to ensure the format is correct. 
+                if (fn.getName().endsWith("vcf")) {
+                  
+                FileValidator.vcf_content_checker(String.valueOf(fn));
+                }
+                System.out.println(fn);
                 Reader reader = new Reader(files);
                 /**
                  * Selecting the files needed with filechooser, and they are file only ending with certain extension and it passes it to Reader
@@ -294,13 +312,13 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+           // java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+           // java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+           // java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+           // java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>

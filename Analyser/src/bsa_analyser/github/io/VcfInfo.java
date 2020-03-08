@@ -13,8 +13,6 @@ import javax.swing.JOptionPane;
  * about the file such as size and name. This class assumes that files are
  * valid.
  * 
- * Last updated 3-6-20
- * 
  * @author Kathryn Kananen
  *
  */
@@ -29,29 +27,34 @@ public class VcfInfo {
 	 * Finds the total number of variants in the file.
 	 * 
 	 * @param givenVcf a vcf file
-	 * @return an integer representing the size of the file
+	 * @return an integer representing the size of the file. If file is null or
+	 *         fails to open/read returns 0.
 	 */
 	public static int getVariantCnt(String givenVcf) {
-		int cnt = 0;
-		// 1. Make a BufferedReader for each file.
-		BufferedReader br = InfoPrep(givenVcf);
-		try {
-			String line = br.readLine();
-			while (line != null) {
-				// 2. Count all lines that are not containing metadata
-				if (line.startsWith("#") == false) {
-					cnt++;
+		if (givenVcf == null) {
+			return 0;
+		} else if (givenVcf.length() != 0) {
+			int cnt = 0;
+			// 1. Make a BufferedReader for each file.
+			BufferedReader br = InfoPrep(givenVcf);
+			try {
+				String line = br.readLine();
+				while (line != null) {
+					// 2. Count all lines that are not containing metadata
+					if (line.startsWith("#") == false) {
+						cnt++;
+					}
+					line = br.readLine();
 				}
-				line = br.readLine();
-			}
 
-			return cnt;
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, e);
+				return cnt;
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(null, e);
+			}
 		}
 
-
 		return 0;
+
 	}
 
 	/**
@@ -62,18 +65,22 @@ public class VcfInfo {
 	 */
 	public static LinkedList<String> getFileInfo(String givenVcf) {
 		LinkedList<String> out = new LinkedList<String>();
-		// 1. Make a BufferedReader for each file.
-		BufferedReader br = InfoPrep(givenVcf);
-		try {
-			String line = br.readLine();
-			while (line != null) {
-				out.add(line);
-				line = br.readLine();
-			}
-
+		if (givenVcf == null) {
 			return out;
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, e);
+		} else if (givenVcf.length() != 0) {
+			// 1. Make a BufferedReader for each file.
+			BufferedReader br = InfoPrep(givenVcf);
+			try {
+				String line = br.readLine();
+				while (line != null) {
+					out.add(line);
+					line = br.readLine();
+				}
+
+				return out;
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(null, e);
+			}
 		}
 		return out;
 	}
@@ -84,41 +91,45 @@ public class VcfInfo {
 	 * 
 	 * @param givenVcf a vcf file
 	 * @return Integer representing the number of substitution mutations in the vcf
-	 *         file
+	 *         file. If file is null or fails to open/read returns 0.
 	 */
 	public static int getInsMutCnt(String givenVcf) {
 		int cnt = 0;
-		// 1. Make a BufferedReader for each file.
-		BufferedReader br = InfoPrep(givenVcf);
-		try {
-			String line = br.readLine();
-			while (line != null) {
-				// 2. Count all lines that are not containing metadata
-				if (line.startsWith("#") == false) {
-					String obs = line.split("\t")[3];
-					String alt = line.split("\t")[4];
+		if (givenVcf == null) {
+			return 0;
+		} else if (givenVcf.length() != 0) {
+			// 1. Make a BufferedReader for each file.
+			BufferedReader br = InfoPrep(givenVcf);
+			try {
+				String line = br.readLine();
+				while (line != null) {
+					// 2. Count all lines that are not containing metadata
+					if (line.startsWith("#") == false) {
+						String obs = line.split("\t")[3];
+						String alt = line.split("\t")[4];
 
-					// If they are the same length then it is a deletion mutation.
-					if (obs.length() < alt.length() && !(obs.equals(alt)) && (alt.indexOf(",") == -1)) {
-						cnt++;
-					}
+						// If they are the same length then it is a deletion mutation.
+						if (obs.length() < alt.length() && !(obs.equals(alt)) && (alt.indexOf(",") == -1)) {
+							cnt++;
+						}
 
-					// Some of the variants have two possible observations so both must be checked.
-					if ((alt.indexOf(",") != -1)) {
-						String[] variants = alt.split(",");
-						for (int i = 0; i < variants.length; i++) {
-							if (obs.length() < variants[i].length() && !(obs.equals(variants[i]))) {
-								cnt++;
+						// Some of the variants have two possible observations so both must be checked.
+						if ((alt.indexOf(",") != -1)) {
+							String[] variants = alt.split(",");
+							for (int i = 0; i < variants.length; i++) {
+								if (obs.length() < variants[i].length() && !(obs.equals(variants[i]))) {
+									cnt++;
+								}
 							}
 						}
 					}
+					line = br.readLine();
 				}
-				line = br.readLine();
-			}
 
-			return cnt;
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, e);
+				return cnt;
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(null, e);
+			}
 		}
 
 		return 0;
@@ -130,41 +141,45 @@ public class VcfInfo {
 	 * 
 	 * @param givenVcf a vcf file
 	 * @return Integer representing the number of substitution mutations in the vcf
-	 *         file
+	 *         file. If file is null or fails to open/read returns 0.
 	 */
 	public static int getDelMutCnt(String givenVcf) {
 		int cnt = 0;
-		// 1. Make a BufferedReader for each file.
-		BufferedReader br = InfoPrep(givenVcf);
-		try {
-			String line = br.readLine();
-			while (line != null) {
-				// 2. Count all lines that are not containing metadata
-				if (line.startsWith("#") == false) {
-					String obs = line.split("\t")[3];
-					String alt = line.split("\t")[4];
+		if (givenVcf == null) {
+			return 0;
+		} else if (givenVcf.length() != 0) {
+			// 1. Make a BufferedReader for each file.
+			BufferedReader br = InfoPrep(givenVcf);
+			try {
+				String line = br.readLine();
+				while (line != null) {
+					// 2. Count all lines that are not containing metadata
+					if (line.startsWith("#") == false) {
+						String obs = line.split("\t")[3];
+						String alt = line.split("\t")[4];
 
-					// If they are the same length then it is a deletion mutation.
-					if (obs.length() > alt.length() && !(obs.equals(alt)) && (alt.indexOf(",") == -1)) {
-						cnt++;
-					}
+						// If they are the same length then it is a deletion mutation.
+						if (obs.length() > alt.length() && !(obs.equals(alt)) && (alt.indexOf(",") == -1)) {
+							cnt++;
+						}
 
-					// Some of the variants have two possible observations so both must be checked.
-					if ((alt.indexOf(",") != -1)) {
-						String[] variants = alt.split(",");
-						for (int i = 0; i < variants.length; i++) {
-							if (obs.length() > variants[i].length() && !(obs.equals(variants[i]))) {
-								cnt++;
+						// Some of the variants have two possible observations so both must be checked.
+						if ((alt.indexOf(",") != -1)) {
+							String[] variants = alt.split(",");
+							for (int i = 0; i < variants.length; i++) {
+								if (obs.length() > variants[i].length() && !(obs.equals(variants[i]))) {
+									cnt++;
+								}
 							}
 						}
 					}
+					line = br.readLine();
 				}
-				line = br.readLine();
-			}
 
-			return cnt;
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, e);
+				return cnt;
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(null, e);
+			}
 		}
 
 		return 0;
@@ -178,41 +193,45 @@ public class VcfInfo {
 	 * 
 	 * @param givenVcf a vcf file
 	 * @return Integer representing the number of substitution mutations in the vcf
-	 *         file
+	 *         file. If file is null or fails to open/read returns 0.
 	 */
 	public static int getSubMutCnt(String givenVcf) {
 		int cnt = 0;
-		// 1. Make a BufferedReader for each file.
-		BufferedReader br = InfoPrep(givenVcf);
-		try {
-			String line = br.readLine();
-			while (line != null) {
-				// 2. Count all lines that are not containing metadata
-				if (line.startsWith("#") == false) {
-					String obs = line.split("\t")[3];
-					String alt = line.split("\t")[4];
+		if (givenVcf == null) {
+			return 0;
+		} else if (givenVcf.length() != 0) {
+			// 1. Make a BufferedReader for each file.
+			BufferedReader br = InfoPrep(givenVcf);
+			try {
+				String line = br.readLine();
+				while (line != null) {
+					// 2. Count all lines that are not containing metadata
+					if (line.startsWith("#") == false) {
+						String obs = line.split("\t")[3];
+						String alt = line.split("\t")[4];
 
-					// If they are the same length then it is a substitution mutation.
-					if (obs.length() == alt.length() && !(obs.equals(alt)) && (alt.indexOf(",") == -1)) {
-						cnt++;
-					}
+						// If they are the same length then it is a substitution mutation.
+						if (obs.length() == alt.length() && !(obs.equals(alt)) && (alt.indexOf(",") == -1)) {
+							cnt++;
+						}
 
-					// Some of the variants have two possible observations so both must be checked.
-					if ((alt.indexOf(",") != -1)) {
-						String[] variants = alt.split(",");
-						for (int i = 0; i < variants.length; i++) {
-							if (obs.length() == variants[i].length() && !(obs.equals(variants[i]))) {
-								cnt++;
+						// Some of the variants have two possible observations so both must be checked.
+						if ((alt.indexOf(",") != -1)) {
+							String[] variants = alt.split(",");
+							for (int i = 0; i < variants.length; i++) {
+								if (obs.length() == variants[i].length() && !(obs.equals(variants[i]))) {
+									cnt++;
+								}
 							}
 						}
 					}
+					line = br.readLine();
 				}
-				line = br.readLine();
-			}
 
-			return cnt;
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, e);
+				return cnt;
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(null, e);
+			}
 		}
 
 		return 0;
@@ -225,12 +244,14 @@ public class VcfInfo {
 	 * @return a BufferedReader of the givenVcf file
 	 */
 	private static BufferedReader InfoPrep(String givenVcf) {
-		try {
-			FileReader fr = new FileReader(givenVcf);
-			BufferedReader br = new BufferedReader(fr);
-			return br;
-		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null, e);
+		if (givenVcf.length() != 0) {
+			try {
+				FileReader fr = new FileReader(givenVcf);
+				BufferedReader br = new BufferedReader(fr);
+				return br;
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(null, e);
+			}
 		}
 		return null;
 	}

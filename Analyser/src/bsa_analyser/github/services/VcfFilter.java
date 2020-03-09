@@ -3,6 +3,13 @@ package bsa_analyser.github.services;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * This class contains a single method that finds the common alleles between two
+ * vcfs and filters them.
+ * 
+ * @author Kathryn Kananen
+ *
+ */
 public class VcfFilter {
 	public VcfFilter() {
 
@@ -21,7 +28,7 @@ public class VcfFilter {
 	 * @param vcf1 the first vcf file with one phenotype
 	 * @param vcf2 the second vcf file with contrasting phenotype
 	 */
-	private static HashMap<String, String> findCommonVars(ArrayList<String> vcf1, ArrayList<String> vcf2) {
+	private static HashMap<String, String> filterCommonVars(ArrayList<String> vcf1, ArrayList<String> vcf2) {
 		// Holds a comparison pool made from the first pool given.
 		HashMap<String, String> mutCompVcf = new HashMap<String, String>();
 

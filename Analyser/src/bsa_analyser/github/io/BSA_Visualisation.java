@@ -249,11 +249,18 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
         for (File fn : files){
             if(fn.getName().endsWith("fasta")||(fn.getName().endsWith("vcf"))||(fn.getName().endsWith("gff"))||(fn.getName().endsWith("gff3"))){
-                Reader reader = new Reader(files);
+               
                 /**
                  * Selecting the files needed with filechooser, and they are file only ending with certain extension and it passes it to Reader
                  */
-
+                if (fn.getName().endsWith("vcf")) {
+                  
+                FileValidator.vcf_content_checker(String.valueOf(fn));
+                } else if (fn.getName().endsWith("gff")) {
+                    FileValidator.gff_content_checker(String.valueOf(fn));
+                }
+                System.out.println(fn);
+                Reader reader = new Reader(files);
 
 
             } else {

@@ -1,9 +1,10 @@
 package bsa_analyser.github.io;
 
 import java.io.BufferedReader;
+
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
@@ -17,9 +18,9 @@ import javax.swing.JOptionPane;
  *
  */
 public class FastaInfo {
-	private static LinkedList<String> fastaInfoLST;
+	private static ArrayList<String> fastaInfoLST;
 
-	public FastaInfo(LinkedList<String> givenFasta) {
+	public FastaInfo(ArrayList<String> givenFasta) {
 		fastaInfoLST = givenFasta;
 	}
 
@@ -29,8 +30,8 @@ public class FastaInfo {
 	 * @param givenFasta a given fasta file
 	 * @return LinkedList containing the file information
 	 */
-	public static LinkedList<String> getFileInfo(String givenFasta) {
-		LinkedList<String> out = new LinkedList<String>();
+	public static ArrayList<String> getFileInfo(String givenFasta) {
+		ArrayList<String> out = new ArrayList<String>();
 		if (givenFasta == null) {
 			return null;
 		} else if (givenFasta.length() != 0) {
@@ -77,7 +78,7 @@ public class FastaInfo {
 	 * 
 	 * @return List containing the information of the fasta file.
 	 */
-	public static LinkedList<String> getFastaLST() {
+	public static ArrayList<String> getFastaLST() {
 		return fastaInfoLST;
 	}
 
@@ -87,7 +88,7 @@ public class FastaInfo {
 	 * 
 	 * @param givenFasta a given fasta file
 	 */
-	public static void setVcfsLST(LinkedList<String> givenFasta) {
+	public static void setVcfsLST(ArrayList<String> givenFasta) {
 		FastaInfo.fastaInfoLST = givenFasta;
 	}
 }

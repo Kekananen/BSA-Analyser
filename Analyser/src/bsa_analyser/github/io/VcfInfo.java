@@ -2,9 +2,10 @@ package bsa_analyser.github.io;
 
 import java.io.BufferedReader;
 
+
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
@@ -20,10 +21,10 @@ import javax.swing.JOptionPane;
  */
 
 public class VcfInfo {
-	private static LinkedList<String> vcfsLST;
+	private static ArrayList<String> vcfsLST;
 
-	public VcfInfo(LinkedList<String> linkedList) {
-		vcfsLST = linkedList;
+	public VcfInfo(ArrayList<String> givenVcfs) {
+		vcfsLST = givenVcfs;
 	}
 
 	/**
@@ -64,8 +65,8 @@ public class VcfInfo {
 	 * @param givenVcf a vcf file
 	 * @return LinkedList containing the file information
 	 */
-	public static LinkedList<String> getFileInfo(String givenVcf) {
-		LinkedList<String> out = new LinkedList<String>();
+	public static ArrayList<String> getFileInfo(String givenVcf) {
+		ArrayList<String> out = new ArrayList<String>();
 		if (givenVcf == null) {
 			return out;
 		} else if (givenVcf.length() != 0) {
@@ -262,7 +263,7 @@ public class VcfInfo {
 	 * 
 	 * @return List of vcf files.
 	 */
-	public static LinkedList<String> getVcfsLST() {
+	public static ArrayList<String> getVcfsLST() {
 		return vcfsLST;
 	}
 
@@ -272,7 +273,7 @@ public class VcfInfo {
 	 * 
 	 * @param vcfsLST
 	 */
-	public static void setVcfsLST(LinkedList<String> vcfsLST) {
+	public static void setVcfsLST(ArrayList<String> vcfsLST) {
 		VcfInfo.vcfsLST = vcfsLST;
 	}
 

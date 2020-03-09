@@ -1,9 +1,10 @@
 package bsa_analyser.github.io;
 
 import java.io.BufferedReader;
+
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
@@ -17,9 +18,9 @@ import javax.swing.JOptionPane;
  *
  */
 public class GffInfo {
-	private static LinkedList<String> gffsLST;
+	private static ArrayList<String> gffsLST;
 
-	public GffInfo(LinkedList<String> givenGffs) {
+	public GffInfo(ArrayList<String> givenGffs) {
 		gffsLST = givenGffs;
 	}
 
@@ -29,8 +30,8 @@ public class GffInfo {
 	 * @param givenGff a gff file
 	 * @return LinkedList containing the file information
 	 */
-	public static LinkedList<String> getFileInfo(String givenGff) {
-		LinkedList<String> out = new LinkedList<String>();
+	public static ArrayList<String> getFileInfo(String givenGff) {
+		ArrayList<String> out = new ArrayList<String>();
 		// 1. Make a BufferedReader for each file.
 		if (givenGff == null) {
 			return out;
@@ -77,7 +78,7 @@ public class GffInfo {
 	 * 
 	 * @return List of gff files.
 	 */
-	public static LinkedList<String> getGffLST() {
+	public static ArrayList<String> getGffLST() {
 		return gffsLST;
 	}
 
@@ -86,7 +87,7 @@ public class GffInfo {
 	 * 
 	 * @param gffsLST
 	 */
-	public static void setVcfsLST(LinkedList<String> gffsLST) {
+	public static void setVcfsLST(ArrayList<String> gffsLST) {
 		GffInfo.gffsLST = gffsLST;
 	}
 }

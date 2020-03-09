@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,10 +25,10 @@ public class Reader {
 
 	// public static Files[];
 	private static String fastaFile;
-	private static LinkedList<String> vcfsParLST, vcfsChildLST;
+	private static ArrayList<String> vcfsParLST, vcfsChildLST;
 	// Allow for multiple gffs for if the user wants to see how multiple annotations
 	// are implemented from their NGS pipeline or another's.
-	private static LinkedList<String> gffLST;
+	private static ArrayList<String> gffLST;
 
 	public Reader(File[] givenFasta) {
 		fastaReader(givenFasta);
@@ -51,7 +51,7 @@ public class Reader {
 		if (givenFasta.length != 0) {
 			// 1. Gather the fasta files names in a parentvcflist
 			String[] endings = { ".fasta", "fa" };
-			LinkedList<String> fastaLST = fileSorter(givenFasta, endings);
+			ArrayList<String> fastaLST = fileSorter(givenFasta, endings);
 
 			// 3. If more than 1 fasta was uploaded the user must chose which fasta they
 			// meant to chose for the analysis they are running a the moment.
@@ -117,21 +117,21 @@ public class Reader {
 		if (givenVcfs.length != 0) {
 			// 1. Gather the vcf files names in a parentvcflist
 			String[] endings = { ".vcf" };
-			LinkedList<String> vcfsLST = fileSorter(givenVcfs, endings);
+			ArrayList<String> vcfsLST = fileSorter(givenVcfs, endings);
 
 			// 2. Check which files are the parent by asking the user to specify. By default
 			// the remaining ones are treated as children of the parents.
 			if (vcfsLST.size() >= 3) {
 				// Holds the intersect of all the vcf files and the ones specified by the user
 				// as the parents which allows for them to be validated in the loop.
-				LinkedList<String> intersect = new LinkedList<String>();
+				ArrayList<String> intersect = new ArrayList<String>();
 				// Holds the children which are all files minus the intersect
-				LinkedList<String> children = new LinkedList<String>();
+				ArrayList<String> children = new ArrayList<String>();
 				while (intersect.size() != 2) {
 
 					// Used Jlist for the VCF file, so that the user would be able to click and
 					// choose the parent VCF, instead of typing.
-					LinkedList<String> parentvcflist = new LinkedList<>();
+					ArrayList<String> parentvcflist = new ArrayList<String>();
 
 					String vcfs = "";
 
@@ -157,7 +157,7 @@ public class Reader {
 					};
 
 					// Holds the selected files.
-					List<String> selectedVcfFiles = new LinkedList<>();
+					List<String> selectedVcfFiles = new ArrayList<String>();
 
 					list2.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
@@ -179,14 +179,14 @@ public class Reader {
 						intersect.add("hit1");
 						intersect.add("hit2");
 
-						vcfsParLST = new LinkedList<String>();
-						vcfsChildLST = new LinkedList<String>();
+						vcfsParLST = new ArrayList<String>();
+						vcfsChildLST = new ArrayList<String>();
 					} else if(selectedVcfFiles.size() == 2) {
 						// Set the global parentvcflist for parents to be empty so values can be added
 						// fresh.
-						vcfsParLST = new LinkedList<String>();
+						vcfsParLST = new ArrayList<String>();
 
-						LinkedList<String> selectedVcfs = new LinkedList<String>();
+						ArrayList<String> selectedVcfs = new ArrayList<String>();
 						String[] parVcfs = selectedVcfFiles.toArray(new String[selectedVcfFiles.size()]);
 
 						for (int i = 0; i < parVcfs.length; i++) {
@@ -195,10 +195,10 @@ public class Reader {
 						}
 
 						// Find the intersect of the vcf lists.
-						intersect = new LinkedList<>(selectedVcfs);
+						intersect = new ArrayList<String>(selectedVcfs);
 						intersect.retainAll(vcfsLST);
 						// Find the children vcf files.
-						children = new LinkedList<>(vcfsLST);
+						children = new ArrayList<String>(vcfsLST);
 						children.removeAll(selectedVcfs);
 
 						vcfsChildLST = children;
@@ -207,8 +207,8 @@ public class Reader {
 			} else {
 				JOptionPane.showMessageDialog(null, "not enough vcf files were given to account "
 						+ "for both the children and parents. Please supply at least three vcf files");
-				vcfsParLST = new LinkedList<String>();
-				vcfsChildLST = new LinkedList<String>();
+				vcfsParLST = new ArrayList<String>();
+				vcfsChildLST = new ArrayList<String>();
 			}
 		}
 	}
@@ -223,17 +223,17 @@ public class Reader {
 		if (givenGffs.length != 0) {
 			// 1. Gather the gff files names in a parentvcflist
 			String[] endings = { ".gff", ".gff3" };
-			LinkedList<String> gffsLST = fileSorter(givenGffs, endings);
+			ArrayList<String> gffsLST = fileSorter(givenGffs, endings);
 
 			// 2. Add all the found gff files to the gff parentvcflist.
 			if (gffsLST.size() >= 1) {
-				gffLST = new LinkedList<String>();
+				gffLST = new ArrayList<String>();
 
 				for (int i = 0; i < gffsLST.size(); i++) {
 					gffLST.add(gffsLST.get(i));
 				}
 			} else {
-				gffLST = new LinkedList<String>();
+				gffLST = new ArrayList<String>();
 			}
 		}
 	}
@@ -279,8 +279,8 @@ public class Reader {
 	 * @return a LinkedList<String> of filtered parentvcflist of all files found
 	 *         with those endings
 	 */
-	private static LinkedList<String> fileSorter(File[] givenfiles, String[] types) {
-		LinkedList<String> filesLST = new LinkedList<String>();
+	private static ArrayList<String> fileSorter(File[] givenfiles, String[] types) {
+		ArrayList<String> filesLST = new ArrayList<String>();
 		// For every file in a user selected parentvcflist and the selected types, if
 		// the ending
 		// matches add it to the return parentvcflist.
@@ -317,7 +317,7 @@ public class Reader {
 	 *
 	 * @return vcf children files.
 	 */
-	public static LinkedList<String> getVcfsChildLST() {
+	public static ArrayList<String> getVcfsChildLST() {
 		return vcfsChildLST;
 	}
 
@@ -327,7 +327,7 @@ public class Reader {
 	 *
 	 * @param vcfsChildLST
 	 */
-	public static void setVcfsChildLST(LinkedList<String> vcfsChildLST) {
+	public static void setVcfsChildLST(ArrayList<String> vcfsChildLST) {
 		Reader.vcfsChildLST = vcfsChildLST;
 	}
 
@@ -336,7 +336,7 @@ public class Reader {
 	 *
 	 * @return vcf parent files.
 	 */
-	public static LinkedList<String> getVcfsParLST() {
+	public static ArrayList<String> getVcfsParLST() {
 		return vcfsParLST;
 	}
 
@@ -346,7 +346,7 @@ public class Reader {
 	 *
 	 * @param vcfsParLST
 	 */
-	public static void setVcfsParLST(LinkedList<String> vcfsParLST) {
+	public static void setVcfsParLST(ArrayList<String> vcfsParLST) {
 		Reader.vcfsParLST = vcfsParLST;
 	}
 
@@ -355,7 +355,7 @@ public class Reader {
 	 *
 	 * @return gff file selected by user.
 	 */
-	public static LinkedList<String> getGffLST() {
+	public static ArrayList<String> getGffLST() {
 		return gffLST;
 	}
 
@@ -365,7 +365,7 @@ public class Reader {
 	 *
 	 * @param gffLST
 	 */
-	public static void setGffLST(LinkedList<String> gffLST) {
+	public static void setGffLST(ArrayList<String> gffLST) {
 		Reader.gffLST = gffLST;
 	}
 }

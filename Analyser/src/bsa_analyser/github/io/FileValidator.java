@@ -120,4 +120,41 @@ public class FileValidator {
             System.out.println(ex);
         }   
     }
+        
+    /**
+	 * Checks the content within the selected GFF to validate this file as a
+         * GFF file
+	 * 
+	 * @param user_file path to the user file
+	 */
+        public static void gff_content_checker(String user_file) {
+            //Keep track of what line the file is on.
+            int line_counter =0;
+       
+        try {
+                BufferedReader reader = new BufferedReader(new FileReader(user_file));
+                //Check the first line of the file as this should contain fileformat information and place it into the variable 
+
+                
+                String line_gff_content;
+                int expected_fields = 9; // expected number of fields in a gff file are 9
+                Boolean correct_fields = TRUE;
+                while ((line_gff_content = reader.readLine()) != null){
+                    List<String> gff_line = new ArrayList<>(Arrays.asList(line_gff_content.split("\t")));
+                    int gff_line_size = gff_line.size();
+                    if (gff_line_size != expected_fields) { //checking number of fields
+                        System.out.println("Warning line " + line_counter + " does not appear to have to correct number of fields");
+                        correct_fields = FALSE;
+                    }
+                    line_counter +=1;
+                    
+                }               
+                
+                
+        }
+        catch (Exception ex) {
+            System.out.println(ex);
+        }   
+    }
+        
 }

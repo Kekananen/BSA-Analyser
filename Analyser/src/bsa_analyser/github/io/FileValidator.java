@@ -22,7 +22,7 @@ import javax.swing.JOptionPane;
 
 
 public class FileValidator {
-    public static void vcf_content_checker(File user_file) {
+    public static void fasta_content_checker(File user_file) {
 
     boolean b = false;
 

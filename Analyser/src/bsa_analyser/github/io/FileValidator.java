@@ -5,24 +5,79 @@
  */
 package bsa_analyser.github.io;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
+
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import javax.swing.JOptionPane;
 
 /**
  *
- * @author jkell
+ * @author jkelly, Valetina, and Tolu
  */
 
 
 public class FileValidator {
-    
-    
+    public static void vcf_content_checker(File user_file) {
+
+    boolean b = false;
+
+    List<String> Fasta_Content = new ArrayList<String>();
+        if (user_file.getName().endsWith("fasta") || user_file.getName().endsWith("fa")) {
+            String line = "";
+            try {
+
+                BufferedReader br = new BufferedReader(new FileReader((user_file)));
+                while (((line = br.readLine()) != null)) {
+
+                    if ((!line.contains("A|T|G|C|N")) && (!line.startsWith(">"))) {
+                        //while (((line = br.readLine() != null)) {
+                        for (int i = 0; i < line.length(); i++) {
+                            if (!(line.substring(i, i + 1).matches(("|A|T|G|C|N|a|t|g|c|n")))) {
+                                int user_option = JOptionPane.showConfirmDialog(null, "This Fasta file is corrupt"
+                                        + " This means the content may not be a Fasta file format. Do you wish to upload another file?"
+                                        + " (error code 1)");
+
+                                if (user_option == 0) {
+                                    BSA_Visualisation.upload_files();
+                                    b = true;
+                                    break;
+                                } else {
+                                    JOptionPane.showMessageDialog(null, "This Fasta has not being verified");
+                                }
+                                System.out.println("WARNING - File not verified as being .vcf (error code 2)");
+                            }
+
+                        }
+
+
+                    }
+                    Scanner inFile1 = new Scanner(new FileReader(user_file));//.useDelimiter("\\>");
+
+                    while (inFile1.hasNext()) {
+                        String token1 = inFile1.nextLine();
+                        Fasta_Content.add(token1);
+                    }
+
+
+                    System.out.println(Fasta_Content);
+                }
+            } catch (FileNotFoundException ex) {
+                System.out.println(ex);;
+            } catch (IOException ex) {
+                System.out.println(ex);;
+            }
+        }
+
+
+    }
+
+
+
     /**
 	 * Checks the content within the selected VCF to validate this file as a
          * VCF file

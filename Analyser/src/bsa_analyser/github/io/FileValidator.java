@@ -5,8 +5,13 @@
  */
 package bsa_analyser.github.io;
 
-import java.io.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.*;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import java.util.ArrayList;
@@ -22,62 +27,121 @@ import javax.swing.JOptionPane;
 
 
 public class FileValidator {
-    public static void fasta_content_checker(File user_file) {
-
-    boolean b = false;
-
-    List<String> Fasta_Content = new ArrayList<String>();
+     public static void Fasta_Reader_checker(File user_file) {
+    
+     /**
+ * Two checks are done here the first is to check if each contigs have ATGC 
+ * and the second check is for checking if the Contigs are Align with the fasta format
+ */ 
+        
+        boolean b = false;
+        //List<String> temps = new ArrayList<>();
+        List<String> head = new ArrayList<>();
+        List<String> contigSequences = new ArrayList<>();
+        String letters = "";
+        String valid = "ATGC";
+        String check = "";
+        int user_option = -1;
+        List<Integer> badContig = new ArrayList<>();
         if (user_file.getName().endsWith("fasta") || user_file.getName().endsWith("fa")) {
-            String line = "";
             try {
-
                 BufferedReader br = new BufferedReader(new FileReader((user_file)));
+                String line = "";
+                // keep track of index of last scaffold in list, to link with index of corresponding contig sequence
+                int i = -1;
+                boolean lineRead = false;
                 while (((line = br.readLine()) != null)) {
+                    
+                    /**
+                     * First check to see if the Contig sequence has ATGC, so this was done by storing each contigSequence 
+                     * into an arraylist, so that i can run a check in the element has ATGC. and if it has, then it add it to badContig list
+                     * 
+                     */
 
-                    if ((!line.contains("A|T|G|C|N")) && (!line.startsWith(">"))) {
-                        //while (((line = br.readLine() != null)) {
-                        for (int i = 0; i < line.length(); i++) {
-                            if (!(line.substring(i, i + 1).matches(("|A|T|G|C|N|a|t|g|c|n")))) {
-                                int user_option = JOptionPane.showConfirmDialog(null, "This Fasta file is corrupt"
-                                        + " This means the content may not be a Fasta file format. Do you wish to upload another file?"
-                                        + " (error code 1)");
-
-                                if (user_option == 0) {
-                                    BSA_Visualisation.upload_files();
-                                    b = true;
-                                    break;
-                                } else {
-                                    JOptionPane.showMessageDialog(null, "This Fasta has not being verified");
-                                }
-                                System.out.println("WARNING - File not verified as being .vcf (error code 2)");
+                    if (line.substring(0, 1).equals(">")) {
+                        if (i > -1) {
+                            if (letters.length() != 4) {
+                                badContig.add(contigSequences.size() - 1);
                             }
-
                         }
 
+                        letters = "";
 
+                        head.add((line));
+                        lineRead = true;
+                        i++;
+
+                    } else {
+                        line.toUpperCase(); // changed it to uppercase so as to be able to deal with the small atgc 
+                        if (letters.length() != 4) {
+                            for (int k = 0; k < line.length(); k++) {
+                                check = line.substring(k, k + 1);
+                                if (valid.contains(check)) {
+                                    if (!letters.contains(check)) {
+                                        letters += check;
+                                    }
+                                }
+                            }
+                            if (lineRead) {
+                                contigSequences.add(line + "\n");
+
+                                lineRead = false;
+                            } else {
+                                contigSequences.set(i, contigSequences.get(i) + line + "\n");
+                            }
+                        }
                     }
-                    Scanner inFile1 = new Scanner(new FileReader(user_file));//.useDelimiter("\\>");
-
-                    while (inFile1.hasNext()) {
-                        String token1 = inFile1.nextLine();
-                        Fasta_Content.add(token1);
+                    /**
+                     * This check if the Fasta file align to the fasta file format of 
+                     * no white space and no other char apart from ATGC and N
+                     */
+                    if ((!line.contains("A|T|G|C|N")) && (!line.startsWith(">"))) {
+                        //while (((line = br.readLine() != null)) {
+                        for (int n = 0; n < line.length(); n++) {
+                            if (!(line.substring(n, n + 1).matches(("|A|T|G|C|N|a|t|g|c|n")))) {
+                                user_option = JOptionPane.showConfirmDialog(null, "This Fasta File is Corrupt "
+                            + " This means the content may not be a Fasta file format. Do you wish to upload another file?"
+                            + " (error code 1)");
+                                //allows the user to retry the upload with an alternate file
+                                // if (user_option == 0) {
+                                //BSA_Visualisation.upload_files();
+                                b = true;
+                                break;
+                            }
+                            
+//                            else {
+//                        JOptionPane.showMessageDialog(null, "This Fasta has not being verified");
+//                    }
+                            // System.out.println("WARNING - File not verified as being .vcf (error code 2)");
+                        }
+                        if (user_option == 0) {
+                                BSA_Visualisation.upload_files();
+                    }  else {
+                        JOptionPane.showMessageDialog(null, "This Fasta has not being verified");
                     }
-
-
-                    System.out.println(Fasta_Content);
+                    }
+               }
+                for (int k = 0; k < badContig.size(); k++) {
+                   if (!badContig.isEmpty()){
+                       user_option = JOptionPane.showConfirmDialog(null, "This Fasta File is Corrupt "
+                            + " This means the content may not be a Fasta file format. Do you wish to upload another file?"
+                            + " (error code 1)");
+                   } 
+                   if (user_option == 0) {
+                                BSA_Visualisation.upload_files();
+                    }  else {
+                        JOptionPane.showMessageDialog(null, "This Fasta has not being verified");
+                    }
                 }
             } catch (FileNotFoundException ex) {
-                System.out.println(ex);;
+                System.out.println(ex);
             } catch (IOException ex) {
-                System.out.println(ex);;
+                System.out.println(ex);
             }
+
+
         }
-
-
-    }
-
-
-
+     }
     /**
 	 * Checks the content within the selected VCF to validate this file as a
          * VCF file

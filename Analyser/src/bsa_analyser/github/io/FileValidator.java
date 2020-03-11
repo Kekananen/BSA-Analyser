@@ -32,7 +32,7 @@ public class FileValidator {
         public static void vcf_content_checker(String user_file) {
             int size_of_header = 0;
             //Keep track of what line the file is on.
-            int line_counter =0;
+            int line_counter =1;
        
         try {
                 BufferedReader reader = new BufferedReader(new FileReader(user_file));
@@ -129,7 +129,7 @@ public class FileValidator {
 	 */
         public static void gff_content_checker(String user_file) {
             //Keep track of what line the file is on.
-            int line_counter =0;
+            int line_counter =1;
        
         try {
                 BufferedReader reader = new BufferedReader(new FileReader(user_file));
@@ -139,7 +139,12 @@ public class FileValidator {
                 String line_gff_content;
                 int expected_fields = 9; // expected number of fields in a gff file are 9
                 Boolean correct_fields = TRUE;
+                
+                
                 while ((line_gff_content = reader.readLine()) != null){
+                    if (!line_gff_content.startsWith("#")) {
+                        
+                
                     List<String> gff_line = new ArrayList<>(Arrays.asList(line_gff_content.split("\t")));
                     int gff_line_size = gff_line.size();
                     if (gff_line_size != expected_fields) { //checking number of fields
@@ -147,7 +152,7 @@ public class FileValidator {
                         correct_fields = FALSE;
                     }
                     line_counter +=1;
-                    
+                    }    
                 }               
                 
                 

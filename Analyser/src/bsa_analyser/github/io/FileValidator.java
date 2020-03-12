@@ -27,10 +27,6 @@ import javax.swing.JOptionPane;
 
 
 public class FileValidator {
-    /**
-     * Checks for errors in a fasta file
-     * @param user_file
-     */
     public static void Fasta_Reader_checker(File user_file) {
 
         /**
@@ -136,7 +132,6 @@ public class FileValidator {
 
         }
     }
-
     /**
 	 * Checks the content within the selected VCF to validate this file as a
          * VCF file

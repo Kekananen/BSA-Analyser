@@ -238,16 +238,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         chooser.setMultiSelectionEnabled(true);
         chooser.showOpenDialog(new JFrame());
         File[] files = chooser.getSelectedFiles();
-        return files;
-    }
-
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {
-              //get the files from the upload files method. This allow the program to call
-        //this method to upload addtional files in case any files fail validation
-        File[] files = upload_files();
-       
-
-        for (File fn : files){
+               for (File fn : files){
             if(fn.getName().endsWith("fasta")||(fn.getName().endsWith("vcf"))||(fn.getName().endsWith("gff"))||(fn.getName().endsWith("gff3"))){
                
                 /**
@@ -258,6 +249,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 FileValidator.vcf_content_checker(String.valueOf(fn));
                 } else if (fn.getName().endsWith("gff")) {
                     FileValidator.gff_content_checker(String.valueOf(fn));
+                }
+                
+                else if ((fn.getName().endsWith("fasta"))||(fn.getName()).endsWith("fa")) {
+                    FileValidator.Fasta_Reader_checker(fn);
                 }
                 System.out.println(fn);
                 Reader reader = new Reader(files);
@@ -271,6 +266,16 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
         }
 
+        return files;
+    }
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {
+              //get the files from the upload files method. This allow the program to call
+        //this method to upload addtional files in case any files fail validation
+        File[] files = upload_files();
+       
+
+ 
 
         for (File F: files ){
             if(F.isFile()) {

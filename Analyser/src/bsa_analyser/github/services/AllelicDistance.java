@@ -60,8 +60,10 @@ public class AllelicDistance {
 
 							int GTindex = Arrays.asList(varInfo).indexOf("GT");
 							int PLindex = Arrays.asList(varInfo).indexOf("PL");
+							int ADindex = Arrays.asList(varInfo).indexOf("AD");
+							int DPindex = Arrays.asList(varInfo).indexOf("DP");
 
-							String GT = "", PL = "";
+							String GT = "", PL = "", AD = "", DP = "";
 							// If the index is not 0 then get the values.
 
 							if (GTindex != -1) {
@@ -74,12 +76,31 @@ public class AllelicDistance {
 							} else {
 								return null;
 							}
-
+							if (ADindex != -1) {
+								AD = varInfo[ADindex];
+							} else {
+								System.out.println("hit");
+								return null;
+							}
+							if (DPindex != -1) {
+								DP = varInfo[ADindex];
+							} else {
+								System.out.println("hit1");
+								return null;
+							}
+							
 							// The variant calculated from the PL variable taking into account both
 							// heterozygous counts and homozygous counts for the variant allele.
-							Double var = Double.parseDouble(PL.split(",")[2])
-									+ Double.parseDouble(PL.split(",")[1]) / 2;
-							vaf = var / (Double.parseDouble(PL.split(",")[0]) + var);
+							String minor = "";
+							if(Double.parseDouble(PL.split(",")[2]) > Double.parseDouble(PL.split(",")[0])) {
+								Double var = Double.parseDouble(PL.split(",")[2])
+										+ Double.parseDouble(PL.split(",")[1]) / 2;
+								vaf = var / (Double.parseDouble(PL.split(",")[0]) + var);
+							} else {
+								Double var = Double.parseDouble(PL.split(",")[0])
+										+ Double.parseDouble(PL.split(",")[1]) / 2;
+								vaf = var / (Double.parseDouble(PL.split(",")[0]) + var);
+							}
 							
 						} else {
 							vaf = 0;

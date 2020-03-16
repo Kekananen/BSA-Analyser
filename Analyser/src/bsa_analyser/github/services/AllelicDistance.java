@@ -88,11 +88,11 @@ public class AllelicDistance {
 								System.out.println("hit1");
 								return null;
 							}
-							
+
 							// The variant calculated from the PL variable taking into account both
 							// heterozygous counts and homozygous counts for the variant allele.
 							String minor = "";
-							if(Double.parseDouble(PL.split(",")[2]) > Double.parseDouble(PL.split(",")[0])) {
+							if (Double.parseDouble(PL.split(",")[2]) > Double.parseDouble(PL.split(",")[0])) {
 								Double var = Double.parseDouble(PL.split(",")[2])
 										+ Double.parseDouble(PL.split(",")[1]) / 2;
 								vaf = var / (Double.parseDouble(PL.split(",")[0]) + var);
@@ -101,7 +101,7 @@ public class AllelicDistance {
 										+ Double.parseDouble(PL.split(",")[1]) / 2;
 								vaf = var / (Double.parseDouble(PL.split(",")[0]) + var);
 							}
-							
+
 						} else {
 							vaf = 0;
 						}
@@ -114,8 +114,130 @@ public class AllelicDistance {
 				}
 			}
 		}
-		
+
 		return regionMap;
+	}
+
+	public static void parentFilter(HashMap<String, ArrayList<String>> mut, HashMap<String, ArrayList<String>> norm) {
+		// Holds two HashMaps that contain the parents information after filtering.
+		HashMap<HashMap<String, ArrayList<String>>, HashMap<String, ArrayList<String>>> parentMap = new HashMap<HashMap<String, ArrayList<String>>, HashMap<String, ArrayList<String>>>();
+		// Holds chromosome from the organism.
+		Object[] chroms = mut.keySet().toArray();
+		// 1. Check that there are the same amount of chromosomes in the HashMaps as if
+		// all the alleles are filtered out, or no positions are read, etc then there
+		// may be a mismatch which will cause an error. If that is the case correct for
+		// this by adding a extra chromosome for each missing value as a dummy value
+		// that matches the missing value to keep the program from crashing.
+		if (!(chroms.equals(norm.keySet().toArray()))) {
+			// Case 1: They are of different sizes
+			// Case 2: They have different values
+			Object[] temp = norm.keySet().toArray();
+
+			// Find the intersect of the chromosomes.
+			ArrayList<Object> intersect = new ArrayList<Object>(Arrays.asList(temp));
+			intersect.retainAll(Arrays.asList(chroms));
+
+			for (int i = 0; i < intersect.size(); i++) {
+				// Add the extra chromosomes to the chroms if they are not already there. The
+				// resulting chroms list is used as the base for both lists later so no else
+				// statement is necessary in this case.
+				if (!(Arrays.asList(chroms).contains(intersect.get(i)))) {
+					chroms = new Object[chroms.length + 1];
+					for (int j = 0; j < mut.keySet().size(); j++) {
+						chroms[j] = mut.keySet().toArray()[j];
+					}
+					// Adds the chromosome at the end of the array.
+					chroms[chroms.length] = intersect.get(i);
+				}
+
+			}
+
+		}
+
+		HashMap<String, ArrayList<String>> selected, other = new HashMap<String, ArrayList<String>>();
+		// 2. Find the larger of the two pools as to not cause a null pointer error
+		// later. If doesn't matter which pool is chosen as both have the same number of
+		// chromosomes.
+		int pool1Len = 0, pool2Len = 0;
+		for (int i = 0; i < mut.size(); i++) {
+			// 1.1 Add the lengths of each of the values stored in the chromosomes to the
+			// length counts.
+			ArrayList<Object> temp = (ArrayList<Object>) mut.values().toArray()[i];
+			ArrayList<Object> temp2 = (ArrayList<Object>) norm.values().toArray()[i];
+			pool1Len = pool1Len + temp.size();
+			pool2Len = pool2Len + temp2.size();
+		}
+		// 1.2 Select the larger of the two arrayLists based on the counts.
+		int selLen = 0, othLen = 0;
+		if (pool1Len > pool2Len) {
+			selected = mut;
+			other = norm;
+			selLen = pool1Len;
+			othLen = pool2Len;
+		} else {
+			selected = norm;
+			other = mut;
+			selLen = pool2Len;
+			othLen = pool1Len;
+		}
+
+		// 2. Use the chromosome keys to find the matching positions in the two parents.
+		for (int i = 0; i < chroms.length; i++) {
+			for (int j = 0; j < selLen - 1; j += 3) {
+				// In the second HashMap, look through the other positions and only get those
+				// that matching in position and don't have matching variant.
+				for (int k = 0; k < othLen - 1; k += 3) {
+					System.out.println(selected.get(chroms[i]).get(j));
+					System.out.println(other.get(chroms[i]).get(k));
+					if (selected.get(chroms[i]).get(j).equals(other.get(chroms[i]).get(k))) {
+						// Check for variants with multiple possibilities and if one matches the other
+						// then exclude it from the output.
+						String[] selVars = null, othVars = null;
+						if (selected.get(chroms[i]).get(j + 1).contains(",")) {
+							selVars = selected.get(chroms[i]).get(j + 1).split(",");
+						}
+						if (other.get(chroms[i]).get(k + 1).contains(",")) {
+							othVars = other.get(chroms[i]).get(k + 1).split(",");
+
+						}
+						
+//						System.out.println(selected.get(chroms[i]).get(j + 1));
+//						System.out.println(other.get(chroms[i]).get(k + 1));
+
+//						if (selVars != null) {
+//							// If the variant isn't found in the list then remove it from the other that will be
+//							// output containing the parent values that have been filtered.
+//							for (int l = 0; l < selVars.length; l++) {
+//								if (!(other.get(chroms[i]).get(k).contains(selVars[l]))) {
+//									
+//									other.get(chroms[i]).remove(k);
+//									other.get(chroms[i]).remove(k+1);
+//									other.get(chroms[i]).remove(k+2);
+//									
+//									selected.get(chroms[i]).remove(j);
+//									selected.get(chroms[i]).remove(j+1);
+//									selected.get(chroms[i]).remove(j+2);
+//									
+//									System.out.println(selected.get(chroms[i]).get(j + 1));
+//									System.out.println(other.get(chroms[i]).get(k + 1));
+//								}
+//							}
+//						}
+//
+//						if(selected.get(chroms[i]).get(j+1).split(",")[0])
+//						System.out.println(selected.get(chroms[i]).get(j+1));
+//						System.out.println(other.get(chroms[i]).get(k+1));
+					} else if (Integer.parseInt(other.get(chroms[i]).get(k)) > Integer
+							.parseInt(selected.get(chroms[i]).get(j))) {
+						// If the position of the other HashMap is bigger than the one we are cycling
+						// through initially then break out of the inner for-loop to save computational
+						// time.
+						break;
+					}
+				}
+			}
+		}
+
 	}
 
 	/**

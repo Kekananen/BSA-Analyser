@@ -119,6 +119,7 @@ public class AllelicDistance {
 		return regionMap;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static HashMap<String, ArrayList<String>> parentFilter(HashMap<String, ArrayList<String>> mut,
 			HashMap<String, ArrayList<String>> norm) {
 		// Holds two HashMaps that contain the parents information after filtering.
@@ -133,35 +134,21 @@ public class AllelicDistance {
 		// this by adding a extra chromosome for each missing value as a dummy value
 		// that matches the missing value to keep the program from crashing.
 		Object[] chroms = chromAdjuster(mut, norm);
+		
 		// 2. Find the larger of the two pools as to not cause a null pointer error
 		// later. If doesn't matter which pool is chosen as both have the same number of
 		// chromosomes.
 		int[] poolLen = getMapSize(mut, norm);
 		int pool1Len = poolLen[0];
 		int pool2Len = poolLen[1];
+		// 2.1 Select the larger of the two arrayLists based on the counts.
+		Object[] mapInfo = GetMapListLens(mut, norm, pool1Len, pool2Len, chroms);
+		selected = (HashMap<String, ArrayList<String>>) mapInfo[0];
+		other = (HashMap<String, ArrayList<String>>) mapInfo[1];
+		ArrayList<Integer> chromLens1 = (ArrayList<Integer>) mapInfo[2];
+		ArrayList<Integer> chromLens2 =  (ArrayList<Integer>) mapInfo[3];
 
-		// This list is in the same order as the HashMap keys and thus when iterated
-		// through the values are as well by default.
-		ArrayList<Integer> chromLens1 = new ArrayList<Integer>();
-		ArrayList<Integer> chromLens2 = new ArrayList<Integer>();
-		// 1.2 Select the larger of the two arrayLists based on the counts.
-		for (int i = 0; i < chroms.length; i++) {
-			if (pool1Len > pool2Len) {
-				selected = mut;
-				other = norm;
-
-				chromLens1.add(mut.get(chroms[i]).size());
-				chromLens2.add(norm.get(chroms[i]).size());
-			} else {
-				selected = norm;
-				other = mut;
-
-				chromLens1.add(norm.get(chroms[i]).size());
-				chromLens2.add(mut.get(chroms[i]).size());
-			}
-		}
-
-		// 2. Use the chromosome keys to find the matching positions in the two parents.
+		// 3. Use the chromosome keys to find the matching positions in the two parents.
 		// The index here can also be used to iterate through the chromLens arrayList.
 		for (int i = 0; i < chroms.length; i++) {
 
@@ -242,6 +229,56 @@ public class AllelicDistance {
 	}
 
 	/**
+	 * Finds the larger of the two of the length of all the ArrayLists in the two
+	 * HashMaps and also finds the larger of the two HashMaps. The largest is placed
+	 * in the front most index.
+	 * 
+	 * @param pool1    HashMap representing pool1
+	 * @param pool2    HashMap representing pool2
+	 * @param pool1Len the lengths of the ArraysLists in pool1
+	 * @param pool2Len the lengths of the ArraysLists in pool2
+	 * @param chroms   the list of chromosomes
+	 * @return An arrayList containing four objects - pool1 and pool2 as HashMaps,
+	 *         their corresponding list of ArrayList value lengths.
+	 */
+	@SuppressWarnings({ "unused" })
+	private static Object[] GetMapListLens(HashMap<String, ArrayList<String>> pool1,
+			HashMap<String, ArrayList<String>> pool2, int pool1Len, int pool2Len, Object[] chroms) {
+		// ArrayList containing four objects - pool1 and pool2 as HashMaps, their
+		// corresponding list of ArrayList value lengths.
+		Object[] out = new Object[4];
+		// Holds the larger of the selected maps.
+		HashMap<String, ArrayList<String>> selected = new HashMap<String, ArrayList<String>>();
+		// Holds the smaller of the selected maps.
+		HashMap<String, ArrayList<String>> other = new HashMap<String, ArrayList<String>>();
+
+		ArrayList<Integer> chromLens1 = new ArrayList<Integer>();
+		ArrayList<Integer> chromLens2 = new ArrayList<Integer>();
+		// 1.2 Select the larger of the two arrayLists based on the counts.
+		for (int i = 0; i < chroms.length; i++) {
+			if (pool1Len > pool2Len) {
+				selected = pool2;
+				other = pool1;
+
+				chromLens1.add(pool2.get(chroms[i]).size());
+				chromLens2.add(pool1.get(chroms[i]).size());
+			} else {
+				selected = pool1;
+				other = pool2;
+
+				chromLens1.add(pool1.get(chroms[i]).size());
+				chromLens2.add(pool2.get(chroms[i]).size());
+			}
+		}
+		out[0] = selected;
+		out[1] = other;
+		out[2] = chromLens1;
+		out[3] = chromLens2;
+
+		return out;
+	}
+
+	/**
 	 * Gets the size of the HashMaps containing arraylists as the values and returns
 	 * them as an list of two integer values with pool1 at index 0 and pool2 at
 	 * index 1.
@@ -250,7 +287,7 @@ public class AllelicDistance {
 	 * @param pool2 HashMap representing pool2
 	 * @return an int[] of size 2.
 	 */
-	@SuppressWarnings({ "unchecked", "unused" })
+	@SuppressWarnings({ "unchecked" })
 	private static int[] getMapSize(HashMap<String, ArrayList<String>> pool1,
 			HashMap<String, ArrayList<String>> pool2) {
 		int[] poolLen = new int[2];
@@ -280,7 +317,6 @@ public class AllelicDistance {
 	 * @return an Object[] that holds all the chromosomes shared between the two
 	 *         lists.
 	 */
-	@SuppressWarnings("unused")
 	private static Object[] chromAdjuster(HashMap<String, ArrayList<String>> pool1,
 			HashMap<String, ArrayList<String>> pool2) {
 		// Holds chromosome from the organism.

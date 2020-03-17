@@ -3,6 +3,7 @@ package bsa_analyser.github.services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class AllelicDistance {
 	public AllelicDistance() {
@@ -118,9 +119,10 @@ public class AllelicDistance {
 		return regionMap;
 	}
 
-	public static void parentFilter(HashMap<String, ArrayList<String>> mut, HashMap<String, ArrayList<String>> norm) {
+	public static HashMap<String, ArrayList<String>> parentFilter(HashMap<String, ArrayList<String>> mut,
+			HashMap<String, ArrayList<String>> norm) {
 		// Holds two HashMaps that contain the parents information after filtering.
-		HashMap<HashMap<String, ArrayList<String>>, HashMap<String, ArrayList<String>>> parentMap = new HashMap<HashMap<String, ArrayList<String>>, HashMap<String, ArrayList<String>>>();
+		HashMap<String, ArrayList<String>> parentMap = new HashMap<String, ArrayList<String>>();
 		// Holds chromosome from the organism.
 		Object[] chroms = mut.keySet().toArray();
 		// 1. Check that there are the same amount of chromosomes in the HashMaps as if
@@ -154,11 +156,12 @@ public class AllelicDistance {
 
 		}
 
-		HashMap<String, ArrayList<String>> selected, other = new HashMap<String, ArrayList<String>>();
+		HashMap<String, ArrayList<String>> selected = new HashMap<String, ArrayList<String>>();
+		HashMap<String, ArrayList<String>> other = new HashMap<String, ArrayList<String>>();
+		int pool1Len = 0, pool2Len = 0;
 		// 2. Find the larger of the two pools as to not cause a null pointer error
 		// later. If doesn't matter which pool is chosen as both have the same number of
 		// chromosomes.
-		int pool1Len = 0, pool2Len = 0;
 		for (int i = 0; i < mut.size(); i++) {
 			// 1.1 Add the lengths of each of the values stored in the chromosomes to the
 			// length counts.
@@ -167,77 +170,103 @@ public class AllelicDistance {
 			pool1Len = pool1Len + temp.size();
 			pool2Len = pool2Len + temp2.size();
 		}
+
+		// This list is in the same order as the HashMap keys and thus when iterated
+		// through the values are as well by default.
+		ArrayList<Integer> chromLens1 = new ArrayList<Integer>();
+		ArrayList<Integer> chromLens2 = new ArrayList<Integer>();
 		// 1.2 Select the larger of the two arrayLists based on the counts.
-		int selLen = 0, othLen = 0;
-		if (pool1Len > pool2Len) {
-			selected = mut;
-			other = norm;
-			selLen = pool1Len;
-			othLen = pool2Len;
-		} else {
-			selected = norm;
-			other = mut;
-			selLen = pool2Len;
-			othLen = pool1Len;
-		}
-
-		// 2. Use the chromosome keys to find the matching positions in the two parents.
 		for (int i = 0; i < chroms.length; i++) {
-			for (int j = 0; j < selLen - 1; j += 3) {
-				// In the second HashMap, look through the other positions and only get those
-				// that matching in position and don't have matching variant.
-				for (int k = 0; k < othLen - 1; k += 3) {
-					System.out.println(selected.get(chroms[i]).get(j));
-					System.out.println(other.get(chroms[i]).get(k));
-					if (selected.get(chroms[i]).get(j).equals(other.get(chroms[i]).get(k))) {
-						// Check for variants with multiple possibilities and if one matches the other
-						// then exclude it from the output.
-						String[] selVars = null, othVars = null;
-						if (selected.get(chroms[i]).get(j + 1).contains(",")) {
-							selVars = selected.get(chroms[i]).get(j + 1).split(",");
-						}
-						if (other.get(chroms[i]).get(k + 1).contains(",")) {
-							othVars = other.get(chroms[i]).get(k + 1).split(",");
+			if (pool1Len > pool2Len) {
+				selected = mut;
+				other = norm;
 
-						}
-						
-//						System.out.println(selected.get(chroms[i]).get(j + 1));
-//						System.out.println(other.get(chroms[i]).get(k + 1));
+				chromLens1.add(mut.get(chroms[i]).size());
+				chromLens2.add(norm.get(chroms[i]).size());
+			} else {
+				selected = norm;
+				other = mut;
 
-//						if (selVars != null) {
-//							// If the variant isn't found in the list then remove it from the other that will be
-//							// output containing the parent values that have been filtered.
-//							for (int l = 0; l < selVars.length; l++) {
-//								if (!(other.get(chroms[i]).get(k).contains(selVars[l]))) {
-//									
-//									other.get(chroms[i]).remove(k);
-//									other.get(chroms[i]).remove(k+1);
-//									other.get(chroms[i]).remove(k+2);
-//									
-//									selected.get(chroms[i]).remove(j);
-//									selected.get(chroms[i]).remove(j+1);
-//									selected.get(chroms[i]).remove(j+2);
-//									
-//									System.out.println(selected.get(chroms[i]).get(j + 1));
-//									System.out.println(other.get(chroms[i]).get(k + 1));
-//								}
-//							}
-//						}
-//
-//						if(selected.get(chroms[i]).get(j+1).split(",")[0])
-//						System.out.println(selected.get(chroms[i]).get(j+1));
-//						System.out.println(other.get(chroms[i]).get(k+1));
-					} else if (Integer.parseInt(other.get(chroms[i]).get(k)) > Integer
-							.parseInt(selected.get(chroms[i]).get(j))) {
-						// If the position of the other HashMap is bigger than the one we are cycling
-						// through initially then break out of the inner for-loop to save computational
-						// time.
-						break;
-					}
-				}
+				chromLens1.add(norm.get(chroms[i]).size());
+				chromLens2.add(mut.get(chroms[i]).size());
 			}
 		}
 
+		// 2. Use the chromosome keys to find the matching positions in the two parents.
+		// The index here can also be used to iterate through the chromLens arrayList.
+		for (int i = 0; i < chroms.length; i++) {
+
+			ArrayList<String> posInfo = new ArrayList<String>();
+			ArrayList<String> varInfo = new ArrayList<String>();
+			ArrayList<String> freqInfo = new ArrayList<String>();
+
+			for (int j = 0; j < chromLens1.get(i); j += 3) {
+				posInfo.add(selected.get(chroms[i]).get(j));
+				varInfo.add(selected.get(chroms[i]).get(j + 1));
+				freqInfo.add(selected.get(chroms[i]).get(j + 2));
+			}
+
+			Iterator<String> posIter = posInfo.listIterator();
+			Iterator<String> varIter = varInfo.listIterator();
+			Iterator<String> freqIter = freqInfo.listIterator();
+
+			String pos = posIter.next();
+			String var = varIter.next();
+			String freq = freqIter.next();
+
+			ArrayList<String> region = new ArrayList<String>();
+
+			while (posIter.hasNext()) {
+				for (int j = 0; j < chromLens2.get(i); j += 3) {
+					if (!(parentMap.containsKey(chroms[i]))) {
+						parentMap.put((String) chroms[i], new ArrayList<String>());
+					} else {
+						if (var.contains(",")) {
+							String[] vars = var.split(",");
+							for (int k = 0; k < vars.length; k++) {
+								if (!(vars[k].equals(other.get(chroms[i]).get(j)))) {
+									region = parentMap.get(chroms[i]);
+									if (!(region.contains(other.get(chroms[i]).get(j)))) {
+										region.add(other.get(chroms[i]).get(j));
+										region.add(other.get(chroms[i]).get(j + 1));
+										region.add(other.get(chroms[i]).get(j + 2));
+
+										parentMap.put((String) chroms[i], region);
+									}
+								}
+							}
+						}
+
+						if (!(other.get(chroms[i]).get(j).equals(pos) && other.get(chroms[i]).get(j + 1).equals(var))) {
+							if (!(region.contains(other.get(chroms[i]).get(j)))) {
+								region = parentMap.get(chroms[i]);
+								region.add(other.get(chroms[i]).get(j));
+								region.add(other.get(chroms[i]).get(j + 1));
+								region.add(other.get(chroms[i]).get(j + 2));
+
+								parentMap.put((String) chroms[i], region);
+							}
+						}
+
+					}
+				}
+
+				freq = freqIter.next();
+				var = varIter.next();
+				pos = posIter.next();
+			}
+
+			int cnt = 0;
+			while(freqIter.hasNext()) {
+				parentMap.get(chroms[i]).add(3, freq);
+				freq = freqIter.next();
+				cnt++;
+			}
+			
+		}
+
+		System.out.println(parentMap);
+		return parentMap;
 	}
 
 	/**

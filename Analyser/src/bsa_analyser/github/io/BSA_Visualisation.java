@@ -119,6 +119,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         return files;
     }
     
+    
+    public static void remove_uploaded_files(String file_name){
+        listOf_FileSelected.remove(file_name);
+    }
                
     /**
      * This method is called from within the constructor to initialize the form.
@@ -617,14 +621,16 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             if(F.isFile()) {
                 String  FilesSelected=F.getName();
                 String    PathsOfFile=F.getAbsolutePath();
-                listOf_FileSelected.add(FilesSelected);
-                listOfPaths.add(PathsOfFile);
-                if(FilesSelected.endsWith(".vcf")){
-                    jTextArea1.append(FilesSelected + "\n");
-                } else if (FilesSelected.endsWith(".gff")){
-                    jTextArea3.append(FilesSelected + "\n");
-                } else if (FilesSelected.endsWith(".fa") || FilesSelected.endsWith(".fasta")){
-                    jTextArea2.append(FilesSelected + "\n");
+                if (!listOf_FileSelected.contains(FilesSelected)){
+                    listOf_FileSelected.add(FilesSelected);
+                    listOfPaths.add(PathsOfFile);
+                    if(FilesSelected.endsWith(".vcf")){
+                        jTextArea1.append(FilesSelected + "\n");
+                    } else if (FilesSelected.endsWith(".gff")){
+                        jTextArea3.append(FilesSelected + "\n");
+                    } else if (FilesSelected.endsWith(".fa") || FilesSelected.endsWith(".fasta")){
+                        jTextArea2.append(FilesSelected + "\n");
+                    }
                 }
             }
            // System.out.println(listOfPaths);
@@ -632,14 +638,15 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         }
         // DefaultListModel listModel2 = new DefaultListModel();
         for (int i = 0; i < listOfPaths.size(); i++){ 
-            if (listOf_FileSelected.get(i).endsWith(".vcf")) {
+            if (listOf_FileSelected.get(i).endsWith(".vcf") & !listModelOfSelectedFile.contains(listOf_FileSelected.get(i))) {
                 listModelOfSelectedFile.addElement(listOf_FileSelected.get(i));
             // listModel2.addElement(listOfPaths.get(i));
+                jList1.setModel(listModelOfSelectedFile);
             }
             
         }
 
-        jList1.setModel(listModelOfSelectedFile);
+        
 
 
        //jList1.addMouseListener(new JListListener());

@@ -74,7 +74,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 }
                 
                 else if ((fn.getName().endsWith("fasta"))||(fn.getName()).endsWith("fa")) {
-                    FileValidator.Fasta_Reader_checker(fn);
+                    FileValidator.fasta_content_checker(fn);
                 }
                 System.out.println(fn);
                 Reader reader = new Reader(files);
@@ -302,7 +302,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
@@ -356,7 +356,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                     .addComponent(jLabel13)
                     .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, 295, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(19, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -437,7 +437,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(20, 20, 20)
                 .addComponent(list1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 32, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -619,15 +619,24 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 String    PathsOfFile=F.getAbsolutePath();
                 listOf_FileSelected.add(FilesSelected);
                 listOfPaths.add(PathsOfFile);
+                if(FilesSelected.endsWith(".vcf")){
+                    jTextArea1.append(FilesSelected + "\n");
+                } else if (FilesSelected.endsWith(".gff")){
+                    jTextArea3.append(FilesSelected + "\n");
+                } else if (FilesSelected.endsWith(".fa") || FilesSelected.endsWith(".fasta")){
+                    jTextArea2.append(FilesSelected + "\n");
+                }
             }
            // System.out.println(listOfPaths);
 
         }
         // DefaultListModel listModel2 = new DefaultListModel();
-        for (int i = 0; i < listOfPaths.size(); i++)
-        {
-            listModelOfSelectedFile.addElement(listOf_FileSelected.get(i));
+        for (int i = 0; i < listOfPaths.size(); i++){ 
+            if (listOf_FileSelected.get(i).endsWith(".vcf")) {
+                listModelOfSelectedFile.addElement(listOf_FileSelected.get(i));
             // listModel2.addElement(listOfPaths.get(i));
+            }
+            
         }
 
         jList1.setModel(listModelOfSelectedFile);
@@ -710,7 +719,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JList<String> jList1;
+    public javax.swing.JList<String> jList1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
@@ -741,6 +750,6 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     private javax.swing.JTextArea jTextArea3;
     private java.awt.Label label1;
     private java.awt.List list1;
-    private javax.swing.JLabel variant_count;
+    public static javax.swing.JLabel variant_count;
     // End of variables declaration//GEN-END:variables
 }

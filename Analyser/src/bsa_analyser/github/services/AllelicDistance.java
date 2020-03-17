@@ -133,18 +133,12 @@ public class AllelicDistance {
 		// this by adding a extra chromosome for each missing value as a dummy value
 		// that matches the missing value to keep the program from crashing.
 		Object[] chroms = chromAdjuster(mut, norm);
-		int pool1Len = 0, pool2Len = 0;
 		// 2. Find the larger of the two pools as to not cause a null pointer error
 		// later. If doesn't matter which pool is chosen as both have the same number of
 		// chromosomes.
-		for (int i = 0; i < mut.size(); i++) {
-			// 1.1 Add the lengths of each of the values stored in the chromosomes to the
-			// length counts.
-			ArrayList<Object> temp = (ArrayList<Object>) mut.values().toArray()[i];
-			ArrayList<Object> temp2 = (ArrayList<Object>) norm.values().toArray()[i];
-			pool1Len = pool1Len + temp.size();
-			pool2Len = pool2Len + temp2.size();
-		}
+		int[] poolLen = getMapSize(mut, norm);
+		int pool1Len = poolLen[0];
+		int pool2Len = poolLen[1];
 
 		// This list is in the same order as the HashMap keys and thus when iterated
 		// through the values are as well by default.
@@ -248,12 +242,41 @@ public class AllelicDistance {
 	}
 
 	/**
+	 * Gets the size of the HashMaps containing arraylists as the values and returns
+	 * them as an list of two integer values with pool1 at index 0 and pool2 at
+	 * index 1.
+	 * 
+	 * @param pool1 HashMap representing pool1
+	 * @param pool2 HashMap representing pool2
+	 * @return an int[] of size 2.
+	 */
+	@SuppressWarnings({ "unchecked", "unused" })
+	private static int[] getMapSize(HashMap<String, ArrayList<String>> pool1,
+			HashMap<String, ArrayList<String>> pool2) {
+		int[] poolLen = new int[2];
+		int pool1Len = 0, pool2Len = 0;
+		for (int i = 0; i < pool1.size(); i++) {
+			// 1.1 Add the lengths of each of the values stored in the chromosomes to the
+			// length counts.
+			ArrayList<Object> temp = (ArrayList<Object>) pool1.values().toArray()[i];
+			ArrayList<Object> temp2 = (ArrayList<Object>) pool2.values().toArray()[i];
+
+			pool1Len = pool1Len + temp.size();
+			pool2Len = pool2Len + temp2.size();
+		}
+		poolLen[0] = pool1Len;
+		poolLen[1] = pool2Len;
+
+		return poolLen;
+	}
+
+	/**
 	 * Adjusts the chromosomes index to match if the two pools don't have the same
 	 * amount of chromosomes. For later comparisons this allows the two pools to
 	 * avoid various null pointer errors and redundant checking.
 	 * 
 	 * @param pool1 HashMap representing pool1
-	 * @param pool2 HashMap representing pool1
+	 * @param pool2 HashMap representing pool2
 	 * @return an Object[] that holds all the chromosomes shared between the two
 	 *         lists.
 	 */

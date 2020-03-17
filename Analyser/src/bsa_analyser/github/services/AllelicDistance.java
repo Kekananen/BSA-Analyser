@@ -123,41 +123,16 @@ public class AllelicDistance {
 			HashMap<String, ArrayList<String>> norm) {
 		// Holds two HashMaps that contain the parents information after filtering.
 		HashMap<String, ArrayList<String>> parentMap = new HashMap<String, ArrayList<String>>();
-		// Holds chromosome from the organism.
-		Object[] chroms = mut.keySet().toArray();
+		// Holds the larger of the selected maps.
+		HashMap<String, ArrayList<String>> selected = new HashMap<String, ArrayList<String>>();
+		// Holds the smaller of the selected maps.
+		HashMap<String, ArrayList<String>> other = new HashMap<String, ArrayList<String>>();
 		// 1. Check that there are the same amount of chromosomes in the HashMaps as if
 		// all the alleles are filtered out, or no positions are read, etc then there
 		// may be a mismatch which will cause an error. If that is the case correct for
 		// this by adding a extra chromosome for each missing value as a dummy value
 		// that matches the missing value to keep the program from crashing.
-		if (!(chroms.equals(norm.keySet().toArray()))) {
-			// Case 1: They are of different sizes
-			// Case 2: They have different values
-			Object[] temp = norm.keySet().toArray();
-
-			// Find the intersect of the chromosomes.
-			ArrayList<Object> intersect = new ArrayList<Object>(Arrays.asList(temp));
-			intersect.retainAll(Arrays.asList(chroms));
-
-			for (int i = 0; i < intersect.size(); i++) {
-				// Add the extra chromosomes to the chroms if they are not already there. The
-				// resulting chroms list is used as the base for both lists later so no else
-				// statement is necessary in this case.
-				if (!(Arrays.asList(chroms).contains(intersect.get(i)))) {
-					chroms = new Object[chroms.length + 1];
-					for (int j = 0; j < mut.keySet().size(); j++) {
-						chroms[j] = mut.keySet().toArray()[j];
-					}
-					// Adds the chromosome at the end of the array.
-					chroms[chroms.length] = intersect.get(i);
-				}
-
-			}
-
-		}
-
-		HashMap<String, ArrayList<String>> selected = new HashMap<String, ArrayList<String>>();
-		HashMap<String, ArrayList<String>> other = new HashMap<String, ArrayList<String>>();
+		Object[] chroms = chromAdjuster(mut, norm);
 		int pool1Len = 0, pool2Len = 0;
 		// 2. Find the larger of the two pools as to not cause a null pointer error
 		// later. If doesn't matter which pool is chosen as both have the same number of
@@ -230,6 +205,7 @@ public class AllelicDistance {
 										region.add(other.get(chroms[i]).get(j));
 										region.add(other.get(chroms[i]).get(j + 1));
 										region.add(other.get(chroms[i]).get(j + 2));
+										region.add(freqIter.next());
 
 										parentMap.put((String) chroms[i], region);
 									}
@@ -243,6 +219,7 @@ public class AllelicDistance {
 								region.add(other.get(chroms[i]).get(j));
 								region.add(other.get(chroms[i]).get(j + 1));
 								region.add(other.get(chroms[i]).get(j + 2));
+								region.add(freqIter.next());
 
 								parentMap.put((String) chroms[i], region);
 							}
@@ -251,22 +228,71 @@ public class AllelicDistance {
 					}
 				}
 
-				freq = freqIter.next();
 				var = varIter.next();
 				pos = posIter.next();
 			}
 
-			int cnt = 0;
-			while(freqIter.hasNext()) {
-				parentMap.get(chroms[i]).add(3, freq);
-				freq = freqIter.next();
-				cnt++;
-			}
-			
+//			System.out.println(parentMap);
+//			
+//			int cnt = 0;
+//			while(freqIter.hasNext()) {
+//				parentMap.get(chroms[i]).add(3, freq);
+//				freq = freqIter.next();
+//				cnt++;
+//			}
+
 		}
 
 		System.out.println(parentMap);
 		return parentMap;
+	}
+
+	/**
+	 * Adjusts the chromosomes index to match if the two pools don't have the same
+	 * amount of chromosomes. For later comparisons this allows the two pools to
+	 * avoid various null pointer errors and redundant checking.
+	 * 
+	 * @param pool1 HashMap representing pool1
+	 * @param pool2 HashMap representing pool1
+	 * @return an Object[] that holds all the chromosomes shared between the two
+	 *         lists.
+	 */
+	@SuppressWarnings("unused")
+	private static Object[] chromAdjuster(HashMap<String, ArrayList<String>> pool1,
+			HashMap<String, ArrayList<String>> pool2) {
+		// Holds chromosome from the organism.
+		Object[] chroms = pool1.keySet().toArray();
+		// 1. Check that there are the same amount of chromosomes in the HashMaps as if
+		// all the alleles are filtered out, or no positions are read, etc then there
+		// may be a mismatch which will cause an error. If that is the case correct for
+		// this by adding a extra chromosome for each missing value as a dummy value
+		// that matches the missing value to keep the program from crashing.
+		if (!(chroms.equals(pool1.keySet().toArray()))) {
+			// Case 1: They are of different sizes
+			// Case 2: They have different values
+			Object[] temp = pool1.keySet().toArray();
+
+			// Find the intersect of the chromosomes.
+			ArrayList<Object> intersect = new ArrayList<Object>(Arrays.asList(temp));
+			intersect.retainAll(Arrays.asList(chroms));
+
+			for (int i = 0; i < intersect.size(); i++) {
+				// Add the extra chromosomes to the chroms if they are not already there. The
+				// resulting chroms list is used as the base for both lists later so no else
+				// statement is necessary in this case.
+				if (!(Arrays.asList(chroms).contains(intersect.get(i)))) {
+					chroms = new Object[chroms.length + 1];
+					for (int j = 0; j < pool2.keySet().size(); j++) {
+						chroms[j] = pool2.keySet().toArray()[j];
+					}
+					// Adds the chromosome at the end of the array.
+					chroms[chroms.length] = intersect.get(i);
+				}
+
+			}
+		}
+
+		return chroms;
 	}
 
 	/**
@@ -275,7 +301,7 @@ public class AllelicDistance {
 	 * @param pool2
 	 * @return
 	 */
-	public static HashMap<String, ArrayList<String>> SimalityFinder(HashMap<String, ArrayList<String>> pool1,
+	public static HashMap<String, ArrayList<String>> simalityFinder(HashMap<String, ArrayList<String>> pool1,
 			HashMap<String, ArrayList<String>> pool2) {
 		// The HashMap that is to be output with the average similarity frequencies
 		// found at each matching position.

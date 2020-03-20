@@ -6,10 +6,12 @@
 package bsa_analyser.github.io;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -27,6 +29,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
      static List<String> listOf_FileSelected = new ArrayList<>();
        static ArrayList<String> listOfPaths=new ArrayList<>(); 
          static DefaultListModel listModelOfSelectedFile = new DefaultListModel();
+          //variable to check which analysis the user has selected
+        static String analysisType = "";
+        static File[] parent_files = null;
+        static File[] child_files = null;
      // Reader reader;
     /**
      * Creates new form Visuals
@@ -36,18 +42,81 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         
     
                }
+    
+    
 
  /**
-	 * Creates a file chooser window to allow the user to select a file
+	 * Creates a file child_chooser window to allow the user to select a file
 	 * 
 	 * @return A list of user files
 	 */
     public static File[] upload_files(){
-        JFileChooser chooser = new JFileChooser();
+        //Initialise an empty variable for a list of files
+        File[] files = null;
+        //A series of if statments which brings up a different file child_chooser 
+        //depending on the Analysis type
         
-        chooser.setMultiSelectionEnabled(true);
-        chooser.showOpenDialog(new JFrame());
-        File[] files = chooser.getSelectedFiles();
+        //If the analysis type is selected as MAF then use this method to select
+        //the parent and child files  and sets them to global variables for the
+        //use in the analysis
+        if (analysisType == "MAF") {
+        
+            //Select the parent files for use in MAF
+        JFileChooser parent_chooser = new JFileChooser();
+        parent_chooser.setMultiSelectionEnabled(true);
+        //Select the file chooser as Parent VCF files
+        parent_chooser.setDialogTitle("Select Parent VCF files");
+        parent_chooser.showOpenDialog(new JFrame());
+        parent_files = parent_chooser.getSelectedFiles();
+        //Validate the VCF files
+        file_checker(parent_files);
+        
+        //Select the child files for use in MAF
+         JFileChooser child_chooser = new JFileChooser();
+        child_chooser.setMultiSelectionEnabled(true);
+        child_chooser.setDialogTitle("Select Child VCF files");
+        child_chooser.showOpenDialog(new JFrame());
+        child_files = child_chooser.getSelectedFiles();
+        file_checker(child_files);
+        String child_file_names = "";
+        String parent_file_names = "";
+        
+        //add the child and parent files to a string to print to the user
+        
+        for (File fn: child_files){
+            child_file_names += fn.getName();
+        } 
+         for (File fn: parent_files){
+            parent_file_names += fn.getName();
+        } 
+         
+         //Check the user is happy with the files selected as the parent and the child
+        
+        int user_option = JOptionPane.showConfirmDialog(null, "Do you want to start "
+                + "the Mapped Allele Frequency Mapping with "+ parent_file_names + " as the Parent files "
+                        + "and " + child_file_names  + " as the Children files - do you want to continue?");
+        
+          if (user_option == 0) {
+              System.out.println("The MAF analysis is starting!)");
+                        
+                    } else {
+                        upload_files();
+                        
+                    }
+        
+        }
+        else {
+           JFileChooser parent_chooser = new JFileChooser();
+        parent_chooser.setMultiSelectionEnabled(true);
+        parent_chooser.setDialogTitle("Select Parent VCF files");
+        parent_chooser.showOpenDialog(new JFrame());
+        files = parent_chooser.getSelectedFiles();
+        file_checker(files);
+        }
+        return files;
+    }
+    
+    public static void file_checker(File[] files) {
                for (File fn : files){
             if(fn.getName().endsWith("fa")||(fn.getName().endsWith("vcf"))||(fn.getName().endsWith("gff"))||(fn.getName().endsWith("gff3")) || (fn.getName().endsWith("fasta"))){
                
@@ -79,7 +148,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 String[] file_choices = {"Fasta file", "Variant Call File (VCF)", "GFF/GTF File"};
                 // turns the file to a string
                 String file = String.valueOf(fn.getName());
-                //Brings up a option file chooser so the user can select what type of file the program is expecting 
+                //Brings up a option file child_chooser so the user can select what type of file the program is expecting 
                 Object selected = JOptionPane.showInputDialog(null, "File: "+ file + "does not appear to be a VCF "
                         + "GFF or Fasta file.  What type of file is " + file + "?"
                            , "Unknown file chooser", JOptionPane.DEFAULT_OPTION, null, file_choices, "0");
@@ -109,7 +178,38 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
         }
 
-        return files;
+       
+    }
+    
+    public void set_text_area(File[] files){
+              for (File F: files ){
+            if(F.isFile()) {
+                String  FilesSelected=F.getName();
+                String    PathsOfFile=F.getAbsolutePath();
+                if (!listOf_FileSelected.contains(FilesSelected)){
+                    listOf_FileSelected.add(FilesSelected);
+                    listOfPaths.add(PathsOfFile);
+                    if(FilesSelected.endsWith(".vcf")){
+                        jTextArea1.append(FilesSelected + "\n");
+                    } else if (FilesSelected.endsWith(".gff")){
+                        jTextArea3.append(FilesSelected + "\n");
+                    } else if (FilesSelected.endsWith(".fa") || FilesSelected.endsWith(".fasta")){
+                        jTextArea2.append(FilesSelected + "\n");
+                    }
+                }
+            }
+           // System.out.println(listOfPaths);
+
+        }
+        // DefaultListModel listModel2 = new DefaultListModel();
+        for (int i = 0; i < listOfPaths.size(); i++){ 
+            if (listOf_FileSelected.get(i).endsWith(".vcf") & !listModelOfSelectedFile.contains(listOf_FileSelected.get(i))) {
+                listModelOfSelectedFile.addElement(listOf_FileSelected.get(i));
+            // listModel2.addElement(listOfPaths.get(i));
+                jList1.setModel(listModelOfSelectedFile);
+            }
+            
+        }
     }
     
     
@@ -131,7 +231,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
-        jRadioButton1 = new javax.swing.JRadioButton();
+        Mapped_Allele_Frequency = new javax.swing.JRadioButton();
         jRadioButton2 = new javax.swing.JRadioButton();
         jRadioButton3 = new javax.swing.JRadioButton();
         jButton1 = new javax.swing.JButton();
@@ -205,10 +305,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         jLabel6.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jLabel6.setText("BSA analysis");
 
-        jRadioButton1.setText("Mapped Allelle Frequency");
-        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
+        Mapped_Allele_Frequency.setText("Mapped Allelle Frequency");
+        Mapped_Allele_Frequency.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton1ActionPerformed(evt);
+                Mapped_Allele_FrequencyActionPerformed(evt);
             }
         });
 
@@ -236,7 +336,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                         .addComponent(jLabel6)
-                        .addComponent(jRadioButton1)
+                        .addComponent(Mapped_Allele_Frequency)
                         .addComponent(jRadioButton2)
                         .addComponent(jRadioButton3)
                         .addComponent(jButton1)
@@ -250,7 +350,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addComponent(jLabel6)
                 .addGap(28, 28, 28)
-                .addComponent(jRadioButton1)
+                .addComponent(Mapped_Allele_Frequency)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jRadioButton2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -657,38 +757,8 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         //get the files from the upload files method. This allow the program to call
         //this method to upload addtional files in case any files fail validation
         File[] files = upload_files();
-       
-
- 
-
-        for (File F: files ){
-            if(F.isFile()) {
-                String  FilesSelected=F.getName();
-                String    PathsOfFile=F.getAbsolutePath();
-                if (!listOf_FileSelected.contains(FilesSelected)){
-                    listOf_FileSelected.add(FilesSelected);
-                    listOfPaths.add(PathsOfFile);
-                    if(FilesSelected.endsWith(".vcf")){
-                        jTextArea1.append(FilesSelected + "\n");
-                    } else if (FilesSelected.endsWith(".gff")){
-                        jTextArea3.append(FilesSelected + "\n");
-                    } else if (FilesSelected.endsWith(".fa") || FilesSelected.endsWith(".fasta")){
-                        jTextArea2.append(FilesSelected + "\n");
-                    }
-                }
-            }
-           // System.out.println(listOfPaths);
-
-        }
-        // DefaultListModel listModel2 = new DefaultListModel();
-        for (int i = 0; i < listOfPaths.size(); i++){ 
-            if (listOf_FileSelected.get(i).endsWith(".vcf") & !listModelOfSelectedFile.contains(listOf_FileSelected.get(i))) {
-                listModelOfSelectedFile.addElement(listOf_FileSelected.get(i));
-            // listModel2.addElement(listOfPaths.get(i));
-                jList1.setModel(listModelOfSelectedFile);
-            }
-            
-        }
+        set_text_area(files);
+  
 
 
     
@@ -697,12 +767,20 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
     }//GEN-LAST:event_jMenuItem1ActionPerformed
    
-    private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jRadioButton1ActionPerformed
+    private void Mapped_Allele_FrequencyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Mapped_Allele_FrequencyActionPerformed
+        analysisType = "MAF";
+        upload_files();
+       
+        set_text_area(child_files);
+        set_text_area(parent_files);
+       
+       
+       
+        
+    }//GEN-LAST:event_Mapped_Allele_FrequencyActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jList1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jList1MouseClicked
@@ -759,6 +837,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel DeletionMC;
     private javax.swing.JLabel InsertionMC;
+    private javax.swing.JRadioButton Mapped_Allele_Frequency;
     private javax.swing.JLabel SubsititionMC;
     private javax.swing.JButton jButton1;
     private javax.swing.JComboBox<String> jComboBox1;
@@ -799,7 +878,6 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
-    private javax.swing.JRadioButton jRadioButton1;
     private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JRadioButton jRadioButton3;
     private javax.swing.JScrollPane jScrollPane1;

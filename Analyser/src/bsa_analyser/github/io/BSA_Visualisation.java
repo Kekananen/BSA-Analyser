@@ -8,6 +8,7 @@ package bsa_analyser.github.io;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
@@ -22,6 +23,7 @@ import javax.swing.event.ListSelectionEvent;
  */
 public class BSA_Visualisation extends javax.swing.JFrame {
     static DefaultListModel<String> model;
+    static HashMap vcfFiles = new HashMap();
      static List<String> listOf_FileSelected = new ArrayList<>();
        static ArrayList<String> listOfPaths=new ArrayList<>(); 
          static DefaultListModel listModelOfSelectedFile = new DefaultListModel();
@@ -32,22 +34,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     public BSA_Visualisation() {
         initComponents();
         
-        /*
-        *Action Listener for getting the VCF INFO
-        */
-       jList1.addListSelectionListener((ListSelectionEvent e) -> {       // adding action listener for each listOfPaths item
-            if (!e.getValueIsAdjusting()) {
-               
-                JList selectItem = (JList) e.getSource();                       // creating a listOfPaths
-                int index = selectItem.getSelectedIndex();                      // getting the selected item
-                String val = (String) listOfPaths.get(index);
-                variant_count.setText(" "+ VcfInfo.getVariantCnt(val));
-                InsertionMC.setText(" "+ VcfInfo.getInsMutCnt(val));
-                SubsititionMC.setText(" "+ VcfInfo.getSubMutCnt(val));
-                DeletionMC.setText(" "+ VcfInfo.getDelMutCnt(val));
-               // TextInfo.setText(" "+ VcfInfo.getFileInfo(val)); //Takes alot of Spaces, will change it to table, and see, if the fille can be first read in a list
-            }
-               });
+    
                }
 
  /**
@@ -57,6 +44,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 	 */
     public static File[] upload_files(){
         JFileChooser chooser = new JFileChooser();
+        
         chooser.setMultiSelectionEnabled(true);
         chooser.showOpenDialog(new JFrame());
         File[] files = chooser.getSelectedFiles();
@@ -69,6 +57,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 if (fn.getName().endsWith("vcf")) {
                   
                 FileValidator.vcf_content_checker(String.valueOf(fn));
+                //put the vcf file name in a hashmap next to the full path
+                //This is useful when you want to locate the file through the filename
+                vcfFiles.put(fn.getName(), String.valueOf(fn));
+                
                 } else if (fn.getName().endsWith("gff")) {
                     FileValidator.gff_content_checker(String.valueOf(fn));
                 }
@@ -88,7 +80,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 // turns the file to a string
                 String file = String.valueOf(fn.getName());
                 //Brings up a option file chooser so the user can select what type of file the program is expecting 
-                Object selected = JOptionPane.showInputDialog(null, "File: "+ file + "does not appear to be a VCF"
+                Object selected = JOptionPane.showInputDialog(null, "File: "+ file + "does not appear to be a VCF "
                         + "GFF or Fasta file.  What type of file is " + file + "?"
                            , "Unknown file chooser", JOptionPane.DEFAULT_OPTION, null, file_choices, "0");
                 //if there is a selection - run the type of file through the file validator calss to check the 
@@ -97,6 +89,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                     String selectedString = selected.toString();
                     if (selectedString == "Variant Call File (VCF)") {
                       FileValidator.vcf_content_checker(file);
+                      
                     } else if (selectedString == "Fasta file") {
 
                     } else if (selectedString == "GFF/GTF File") {
@@ -553,6 +546,11 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel5.setText(" Single Nucleotide Polymorphisms :");
 
+        jList1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jList1MouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(jList1);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -692,18 +690,13 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             
         }
 
-        
-
-
-       //jList1.addMouseListener(new JListListener());
-
 
     
     
        
 
     }//GEN-LAST:event_jMenuItem1ActionPerformed
-
+   
     private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jRadioButton1ActionPerformed
@@ -711,6 +704,19 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jList1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jList1MouseClicked
+        //When the user selects a vcf file sets the info
+        String entry;
+        entry = jList1.getSelectedValue();
+        //finds the selected entry in the vcffile name hashmap created when the user uploads a vcf file
+        String val = String.valueOf(vcfFiles.get(entry));
+        //sets the jlabel to the info got from the VCF file info finder
+         variant_count.setText(" "+ VcfInfo.getVariantCnt(val));
+                InsertionMC.setText(" "+ VcfInfo.getInsMutCnt(val));
+                SubsititionMC.setText(" "+ VcfInfo.getSubMutCnt(val));
+                DeletionMC.setText(" "+ VcfInfo.getDelMutCnt(val));
+    }//GEN-LAST:event_jList1MouseClicked
     
     /**
      * @param args the command line arguments

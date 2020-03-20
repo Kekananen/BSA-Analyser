@@ -6,6 +6,7 @@
 package bsa_analyser.github.io;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,6 +28,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
      static List<String> listOf_FileSelected = new ArrayList<>();
        static ArrayList<String> listOfPaths=new ArrayList<>(); 
          static DefaultListModel listModelOfSelectedFile = new DefaultListModel();
+          //variable to check which analysis the user has selected
+        static String analysisType = "";
+        static File[] parent_files = null;
+        static File[] child_files = null;
      // Reader reader;
     /**
      * Creates new form Visuals
@@ -36,18 +41,80 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         
     
                }
+    
+    
 
  /**
-	 * Creates a file chooser window to allow the user to select a file
+	 * Creates a file child_chooser window to allow the user to select a file
 	 * 
 	 * @return A list of user files
 	 */
     public static File[] upload_files(){
-        JFileChooser chooser = new JFileChooser();
+        //Initialise an empty variable for a list of files
+        File[] files = null;
+        //A series of if statments which brings up a different file child_chooser 
+        //depending on the Analysis type
         
-        chooser.setMultiSelectionEnabled(true);
-        chooser.showOpenDialog(new JFrame());
-        File[] files = chooser.getSelectedFiles();
+        //If the analysis type is selected as MAF then use this method to select
+        //the parent and child files  and sets them to global variables for the
+        //use in the analysis
+        if (analysisType == "MAF") {
+        
+            //Select the parent files for use in MAF
+        JFileChooser parent_chooser = new JFileChooser();
+        parent_chooser.setMultiSelectionEnabled(true);
+        //Select the file chooser as Parent VCF files
+        parent_chooser.setDialogTitle("Select Parent VCF files");
+        parent_chooser.showOpenDialog(new JFrame());
+        parent_files = parent_chooser.getSelectedFiles();
+        //Validate the VCF files
+        file_checker(parent_files);
+        
+         JFileChooser child_chooser = new JFileChooser();
+        child_chooser.setMultiSelectionEnabled(true);
+        child_chooser.setDialogTitle("Select Child VCF files");
+        child_chooser.showOpenDialog(new JFrame());
+        child_files = child_chooser.getSelectedFiles();
+        file_checker(child_files);
+        String child_file_names = "";
+        String parent_file_names = "";
+        
+        //add the child and parent files to a string to print to the user
+        
+        for (File fn: child_files){
+            child_file_names += fn.getName();
+        } 
+         for (File fn: parent_files){
+            parent_file_names += fn.getName();
+        } 
+         
+         //Check the user is happy with the files selected as the parent and the child
+        
+        int user_option = JOptionPane.showConfirmDialog(null, "Do you want to start "
+                + "the Mapped Allele Frequency Mapping with "+ parent_file_names + " as the Parent files "
+                        + "and " + child_file_names  + " as the Children files - do you want to continue?");
+        
+          if (user_option == 0) {
+              System.out.println("The MAF analysis is starting!)");
+                        
+                    } else {
+                        upload_files();
+                        
+                    }
+        
+        }
+        else {
+           JFileChooser parent_chooser = new JFileChooser();
+        parent_chooser.setMultiSelectionEnabled(true);
+        parent_chooser.setDialogTitle("Select Parent VCF files");
+        parent_chooser.showOpenDialog(new JFrame());
+        files = parent_chooser.getSelectedFiles();
+        file_checker(files);
+        }
+        return files;
+    }
+    
+    public static void file_checker(File[] files) {
                for (File fn : files){
             if(fn.getName().endsWith("fa")||(fn.getName().endsWith("vcf"))||(fn.getName().endsWith("gff"))||(fn.getName().endsWith("gff3")) || (fn.getName().endsWith("fasta"))){
                
@@ -79,7 +146,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 String[] file_choices = {"Fasta file", "Variant Call File (VCF)", "GFF/GTF File"};
                 // turns the file to a string
                 String file = String.valueOf(fn.getName());
-                //Brings up a option file chooser so the user can select what type of file the program is expecting 
+                //Brings up a option file child_chooser so the user can select what type of file the program is expecting 
                 Object selected = JOptionPane.showInputDialog(null, "File: "+ file + "does not appear to be a VCF "
                         + "GFF or Fasta file.  What type of file is " + file + "?"
                            , "Unknown file chooser", JOptionPane.DEFAULT_OPTION, null, file_choices, "0");
@@ -109,7 +176,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
         }
 
-        return files;
+       
     }
     
     
@@ -657,10 +724,6 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         //get the files from the upload files method. This allow the program to call
         //this method to upload addtional files in case any files fail validation
         File[] files = upload_files();
-       
-
- 
-
         for (File F: files ){
             if(F.isFile()) {
                 String  FilesSelected=F.getName();
@@ -698,11 +761,13 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem1ActionPerformed
    
     private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
-        // TODO add your handling code here:
+        analysisType = "MAF";
+        upload_files();
+        
     }//GEN-LAST:event_jRadioButton1ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jList1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jList1MouseClicked

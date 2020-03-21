@@ -35,6 +35,12 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         static String analysisType = "";
         static File[] parent_files = null;
         static File[] child_files = null;
+        
+        static File[] parent_file_wt = null;
+        static File[] parent_file_mt = null;
+        static File child_files_wt = null;
+        static File child_files_mt = null;
+        
         static File[] all_files = null; //generic file uploaded
      // Reader reader;
     /**
@@ -76,29 +82,35 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         file_checker(parent_files);
         
         //Select the child files for use in MAF
+        if (parent_files.length !=0){
          JFileChooser child_chooser = new JFileChooser();
         child_chooser.setMultiSelectionEnabled(true);
         child_chooser.setDialogTitle("Select Child VCF files");
         child_chooser.showOpenDialog(new JFrame());
         child_files = child_chooser.getSelectedFiles();
         file_checker(child_files);
+        //}
         String child_file_names = "";
         String parent_file_names = "";
         
         //add the child and parent files to a string to print to the user
-        
+        //try{
         for (File fn: child_files){
             child_file_names += fn.getName() + " ";
         } 
          for (File fn: parent_files){
             parent_file_names += fn.getName() + " ";
-        } 
-         
-         //Check the user is happy with the files selected as the parent and the child
+        }
+       // } catch(NullPointerException e){
+            
+       // }
         
+         //Check the user is happy with the files selected as the parent and the child
+        if (parent_files.length != 0 & child_files.length != 0){
         int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
                 + "Mapped Allele Frequency Mapping with "+ parent_file_names + " as the Parent files "
                         + "and " + child_file_names  + " as the Children files - do you want to continue?");
+        
         
           if (user_option == 0) {
               System.out.println("The MAF analysis is starting!)");
@@ -108,6 +120,23 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                         
                     }
         
+            } else {
+            child_files =  null;
+            parent_files = null;
+            JOptionPane.showMessageDialog(null, "File upload cancelled");
+        }
+        }
+        } else if (analysisType == "AD"){
+            ArrayList<File> AD_files = new ArrayList<>();
+            AD_files = phenotype_selector("");
+            child_files_wt = AD_files.get(0);
+            child_files_mt = AD_files.get(1);
+            
+            if (child_files_wt != null & child_files_mt != null){
+        int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
+                + "Allelic Distance with "+ child_files_wt.getName() + " as the wild type file "
+                        + "and " + child_files_mt.getName()  + " as the mutant file - do you want to continue?");
+        }
         }
         else {
            JFileChooser parent_chooser = new JFileChooser();
@@ -118,6 +147,33 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         file_checker(all_files);
         }
         //return files;
+    }
+    
+    
+    public static ArrayList<File> phenotype_selector(String message){
+        ArrayList<File> phenotype_files = new ArrayList<>();
+        
+        JFileChooser wt_chooser = new JFileChooser();
+        wt_chooser.setMultiSelectionEnabled(true);
+        //Select the file chooser as Parent VCF files
+        wt_chooser.setDialogTitle("Select wild type " + message + " VCF file");
+        wt_chooser.showOpenDialog(new JFrame());
+        File wt = null;
+        wt = wt_chooser.getSelectedFile();
+        
+        phenotype_files.add(wt);
+        if (phenotype_files.size() !=0){
+        JFileChooser mt_chooser = new JFileChooser();
+        mt_chooser.setMultiSelectionEnabled(true);
+        //Select the file chooser as Parent VCF files
+        mt_chooser.setDialogTitle("Select mutant type " + message + " VCF file");
+        mt_chooser.showOpenDialog(new JFrame());
+        File mt = null;
+        mt = mt_chooser.getSelectedFile();
+        phenotype_files.add(mt);
+        }
+        
+        return(phenotype_files);
     }
     
     public static void file_checker(File[] files) {
@@ -319,6 +375,11 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         jRadioButton2.setText("Homozygosity Mapping");
 
         jRadioButton3.setText("Allelic Distance");
+        jRadioButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButton3ActionPerformed(evt);
+            }
+        });
 
         jButton1.setText("Analyse");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -785,9 +846,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         upload_files();
         
         
-        
-        set_text_area(child_files);
-        set_text_area(parent_files);
+        if (child_files != null & parent_files != null){
+            set_text_area(child_files);
+            set_text_area(parent_files);
+        }
        
        
        
@@ -810,6 +872,19 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 SubsititionMC.setText(" "+ VcfInfo.getSubMutCnt(val));
                 DeletionMC.setText(" "+ VcfInfo.getDelMutCnt(val));
     }//GEN-LAST:event_jList1MouseClicked
+
+    private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton3ActionPerformed
+        analysisType = "AD";
+        upload_files();
+        if (child_files_wt != null & child_files_mt  != null){
+            File[] files_to_print = new File[2];
+            files_to_print[0]=child_files_wt;
+            files_to_print[1]=child_files_mt;
+            
+            set_text_area(files_to_print);
+            //set_text_area(child_files_mt);
+        }
+    }//GEN-LAST:event_jRadioButton3ActionPerformed
     
     /**
      * @param args the command line arguments

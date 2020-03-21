@@ -1,0 +1,150 @@
+import com.sun.javafx.property.adapter.PropertyDescriptor;
+import com.sun.javafx.property.adapter.PropertyDescriptor.Listener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
+/**
+ *
+ * @author Tien Tang
+ */
+
+/* The below method accepts a vcf file input, two manual user selected inputs
+* for window size and increment size, and a string input for BSA method type.
+* This method returns a HashMap for each chromosome number and an ArrayList that
+* stores String[] versions of each variant line from a vcf file.
+*
+*NOTE: for now, the CreateRegionWindows only accepts int for regionSizeInput and incrementInput.
+*/
+
+public class RegionWindows {
+    private HashMap<String,ArrayList> CreateRegionWindows(ArrayList<String> file, int regionSizeInput, int incrementInput) { //input chromosome sequence and listen for window size input by user.
+        
+        //Step 1. Store each variant line and get the chromosome lengths.
+        
+        ArrayList<String[]> variantList = new ArrayList<String[]>(); //create empty arraylist to store each line as a String[]
+        Iterator fileIter = file.iterator(); //iterate through file
+        
+        HashMap<String, Integer> chromLengthList = new HashMap<String, Integer>(); //store contig length
+        while(fileIter.hasNext()) {
+            String variant = fileIter.next().toString();
+            if (variant.toString().startsWith("##contig")) {
+                String chromNo = variant.split("=|,")[2];
+                int length = Integer.parseInt(variant.split("=|,|>")[4]);
+                chromLengthList.put(chromNo,length);
+            } else if (variant.toString().startsWith("#")) {
+                continue;
+            } else {
+                variantList.add(variant);
+            }
+        };
+        
+        //Step 2. Get window size by converting first user input (regionSizeInput) to integer
+        
+        //String size = regionSizeInput.toString(); //convert action to string
+        //int regionSize = Integer.parseInt(size); //convert string to integer
+        
+        //Step 3. Get increment size by converting second user input (incrementInput) to integer.
+        
+        //String inc = incrementInput.toString(); //convert input to string.
+        //int incSize = Integer.parseInt(inc); //convert increment size to integer.
+        
+        //Step 4. Get the list of chromosomes.
+        
+        Iterator VLIter1 = variantList.iterator(); //iterate through variant list created Step 1.
+        ArrayList chromList = new ArrayList(); //blank ArrayList to store chromosome numbers.
+        
+        while (VLIter1.hasNext()) {
+            String[] variant = VLIt.next().toString().split("\t");
+            String chromNo = variant[0];
+            if(!chromList.contains(chromNo)) { //if the chromosome is not already in the ArrayList.
+                chromList.add(chromNo); //then add the chromosome number to the ArrayList.
+            }
+        }
+        
+        /*Step 5.
+        * Create a HashMap (finalHS) that will store the variants in each region window
+        * for each chromosome.
+        *
+        * Create a HashMap to store the regionWindows in (Integer regionStart,
+        * ArrayList innerVariantList).
+        *
+        * The ArrayList innerVariantList will store each variant line from the
+        * vcf file for a given chromosome and within the regionSizeInput range.
+        * 
+        *
+        */
+        HashMap<String, HashMap<Integer, ArrayList>> finalHS = new HashMap<String,HashMap<Integer, ArrayList>>(); //create new hashmap to store regions list for all chromosomes
+        HashMap<Integer, ArrayList> regionWindows = new HashMap<Integer,ArrayList>(); //create HS to store the regionWindows in, with key as the start position of the window
+        
+        Iterator CNIt = chromList.iterator();
+        while (CNIt.hasNext()) { //for each chromosome, while there is a next.
+            String chromNo = CNIt.next().toString(); //store the chromosome number
+            int chromLength = chromLengthList.get(chromNo);
+            Iterator VLIter2 = variantList.iterator();
+                
+            ArrayList<String> innerVariantList = new ArrayList<String>(); //for a single window, create an empty arraylist to store the variants.
+                    
+            while (VLIter2.hasNext()) { //while there is a next item to iterate to in the variant list
+                String variant = VLIter2.next().toString(); //store the next variant string
+                int position = Integer.parseInt(variant.split("\t")[1]); // and get the position as an integer
+                for (int regionStart = 0; regionStart + regionSizeInput <= chromLength; regionStart += incrementInput) {
+                if(variant.startsWith(chromNo) && position == regionStart && position <= regionStart + regionSizeInput) {
+                    //add the variant to the ArrayList of regionWindows
+                    innerVariantList.add(variant);
+                     } else {
+                    
+                }
+                regionWindows.put(regionStart,innerVariantList);
+                }
+            }
+            finalHS.put(chromNo,regionWindows);
+            }
+
+        return finalHS;
+    };
+    
+    /* THIS METHOD IS NOT COMPLETE YET.
+    * The below method accepts a HashMap of sliding windows for a vcf file with
+    * the chromosome number as a key. The other input is a String returned from
+    * a menu option picked by the user to describe the method they wanted.
+    * If no method was picked, then the method will be set to default.
+    */
+    
+    private HashMap<Integer, Float> CalculateWindows(HashMap windowHS, String method, Listener evt2) { 
+        
+        HashMap<Integer, Float> values = new HashMap<Integer, Float>(); //to be returned
+        Iterator it = windowHS.keySet().iterator(); //iterate through the windows
+        int windowSize = Integer.parseInt(evt2.toString()); //get the window size
+        while (it.hasNext()) {
+            float windowAvg = 0;
+            int windowNo = 1; //start at the first window
+            
+            if(method.equals("Homozygosity Mapping")) {
+                //use this Homozygosity Mapping method
+                //INSERT METHOD HERE
+            }
+            else if (method.equals("Allelic Distance")) {
+                //use Allelic Distance Mapping method
+                //USE METHOD HERE
+            }
+            else if (method.equals("MAF Estimation")) {
+                //use MAF Estimation method
+                //USE METHOD HERE
+                //MAFCalculation mafe = new MAFCalculation(); //not complete yet
+            } else {
+                //use default method for that mapping population.
+                //USE METHOD HERE
+            }
+            
+            for (int i = 0; i<=windowSize; i++) { //for each value in the window
+                float value = (float) windowHS.get(i); //get the value of each item in the window
+                windowAvg = windowAvg + value; //add the value to the running sum
+            
+        }
+            
+        }
+        return values;
+}
+
+}

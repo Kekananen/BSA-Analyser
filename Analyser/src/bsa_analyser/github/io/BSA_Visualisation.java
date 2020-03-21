@@ -6,12 +6,14 @@
 package bsa_analyser.github.io;
 
 import java.io.File;
+import static java.lang.Boolean.FALSE;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -33,13 +35,14 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         static String analysisType = "";
         static File[] parent_files = null;
         static File[] child_files = null;
+        static File[] all_files = null; //generic file uploaded
      // Reader reader;
     /**
      * Creates new form Visuals
      */
     public BSA_Visualisation() {
         initComponents();
-        
+        groupButton();
     
                }
     
@@ -50,9 +53,9 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 	 * 
 	 * @return A list of user files
 	 */
-    public static File[] upload_files(){
+    public static void upload_files(){
         //Initialise an empty variable for a list of files
-        File[] files = null;
+        //File[] files = null;
         //A series of if statments which brings up a different file child_chooser 
         //depending on the Analysis type
         
@@ -68,6 +71,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         parent_chooser.setDialogTitle("Select Parent VCF files");
         parent_chooser.showOpenDialog(new JFrame());
         parent_files = parent_chooser.getSelectedFiles();
+        
         //Validate the VCF files
         file_checker(parent_files);
         
@@ -84,16 +88,16 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         //add the child and parent files to a string to print to the user
         
         for (File fn: child_files){
-            child_file_names += fn.getName();
+            child_file_names += fn.getName() + " ";
         } 
          for (File fn: parent_files){
-            parent_file_names += fn.getName();
+            parent_file_names += fn.getName() + " ";
         } 
          
          //Check the user is happy with the files selected as the parent and the child
         
-        int user_option = JOptionPane.showConfirmDialog(null, "Do you want to start "
-                + "the Mapped Allele Frequency Mapping with "+ parent_file_names + " as the Parent files "
+        int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
+                + "Mapped Allele Frequency Mapping with "+ parent_file_names + " as the Parent files "
                         + "and " + child_file_names  + " as the Children files - do you want to continue?");
         
           if (user_option == 0) {
@@ -110,10 +114,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         parent_chooser.setMultiSelectionEnabled(true);
         parent_chooser.setDialogTitle("Select Parent VCF files");
         parent_chooser.showOpenDialog(new JFrame());
-        files = parent_chooser.getSelectedFiles();
-        file_checker(files);
+        all_files = parent_chooser.getSelectedFiles();
+        file_checker(all_files);
         }
-        return files;
+        //return files;
     }
     
     public static void file_checker(File[] files) {
@@ -138,7 +142,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                     FileValidator.fasta_content_checker(fn);
                 }
                 System.out.println(fn);
-                Reader reader = new Reader(files);
+                //Reader reader = new Reader(files);
 
 
             } else {
@@ -753,11 +757,18 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void groupButton(){
+        ButtonGroup bgroup1 = new ButtonGroup();
+        bgroup1.add(Mapped_Allele_Frequency);
+        bgroup1.add(jRadioButton2);
+        bgroup1.add(jRadioButton3);
+    }
+    
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         //get the files from the upload files method. This allow the program to call
         //this method to upload addtional files in case any files fail validation
-        File[] files = upload_files();
-        set_text_area(files);
+        upload_files();
+        set_text_area(all_files);
   
 
 
@@ -768,9 +779,13 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem1ActionPerformed
    
     private void Mapped_Allele_FrequencyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Mapped_Allele_FrequencyActionPerformed
+        
+        //jRadioButton2.setEnabled(FALSE);
         analysisType = "MAF";
         upload_files();
-       
+        
+        
+        
         set_text_area(child_files);
         set_text_area(parent_files);
        

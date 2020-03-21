@@ -26,133 +26,135 @@ import javax.swing.event.ListSelectionEvent;
  * @author s304617
  */
 public class BSA_Visualisation extends javax.swing.JFrame {
+
     static DefaultListModel<String> model;
     static HashMap vcfFiles = new HashMap();
-     static List<String> listOf_FileSelected = new ArrayList<>();
-       static ArrayList<String> listOfPaths=new ArrayList<>(); 
-         static DefaultListModel listModelOfSelectedFile = new DefaultListModel();
-          //variable to check which analysis the user has selected
-        static String analysisType = "";
-        static File[] parent_files = null;
-        static File[] child_files = null;
-        
-        static File[] parent_file_wt = null;
-        static File[] parent_file_mt = null;
-        static File child_files_wt = null;
-        static File child_files_mt = null;
-        
-        static File[] all_files = null; //generic file uploaded
-     // Reader reader;
+    static List<String> listOf_FileSelected = new ArrayList<>();
+    static ArrayList<String> listOfPaths = new ArrayList<>();
+    static DefaultListModel listModelOfSelectedFile = new DefaultListModel();
+    //variable to check which analysis the user has selected
+    static String analysisType = "";
+    static File[] parent_files = null;
+    static File[] child_files = null;
+
+    static File parent_file_wt = null;
+    static File parent_file_mt = null;
+    static File child_files_wt = null;
+    static File child_files_mt = null;
+    static File hom_file = null;
+
+    static File[] all_files = null; //generic file uploaded
+    // Reader reader;
+
     /**
      * Creates new form Visuals
      */
     public BSA_Visualisation() {
         initComponents();
         groupButton();
-    
-               }
-    
-    
 
- /**
-	 * Creates a file child_chooser window to allow the user to select a file
-	 * 
-	 * @return A list of user files
-	 */
-    public static void upload_files(){
+    }
+
+    /**
+     * Creates a file child_chooser window to allow the user to select a file
+     *
+     * @return A list of user files
+     */
+    public static void upload_files() {
         //Initialise an empty variable for a list of files
         //File[] files = null;
         //A series of if statments which brings up a different file child_chooser 
         //depending on the Analysis type
-        
+
         //If the analysis type is selected as MAF then use this method to select
         //the parent and child files  and sets them to global variables for the
         //use in the analysis
         if (analysisType == "MAF") {
-        
+
             //Select the parent files for use in MAF
-        JFileChooser parent_chooser = new JFileChooser();
-        parent_chooser.setMultiSelectionEnabled(true);
-        //Select the file chooser as Parent VCF files
-        parent_chooser.setDialogTitle("Select Parent VCF files");
-        parent_chooser.showOpenDialog(new JFrame());
-        parent_files = parent_chooser.getSelectedFiles();
-        
-        //Validate the VCF files
-        file_checker(parent_files);
-        
-        //Select the child files for use in MAF
-        if (parent_files.length !=0){
-         JFileChooser child_chooser = new JFileChooser();
-        child_chooser.setMultiSelectionEnabled(true);
-        child_chooser.setDialogTitle("Select Child VCF files");
-        child_chooser.showOpenDialog(new JFrame());
-        child_files = child_chooser.getSelectedFiles();
-        file_checker(child_files);
-        //}
-        String child_file_names = "";
-        String parent_file_names = "";
-        
-        //add the child and parent files to a string to print to the user
-        //try{
-        for (File fn: child_files){
-            child_file_names += fn.getName() + " ";
-        } 
-         for (File fn: parent_files){
-            parent_file_names += fn.getName() + " ";
-        }
-       // } catch(NullPointerException e){
-            
-       // }
-        
-         //Check the user is happy with the files selected as the parent and the child
-        if (parent_files.length != 0 & child_files.length != 0){
-        int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
-                + "Mapped Allele Frequency Mapping with "+ parent_file_names + " as the Parent files "
-                        + "and " + child_file_names  + " as the Children files - do you want to continue?");
-        
-        
-          if (user_option == 0) {
-              System.out.println("The MAF analysis is starting!)");
-                        
-                    } else {
-                        upload_files();
-                        
-                    }
-        
-            } else {
-            child_files =  null;
-            parent_files = null;
-            JOptionPane.showMessageDialog(null, "File upload cancelled");
-        }
-        }
-        } else if (analysisType == "AD"){
+            ArrayList<File> parent_maf_files = new ArrayList<>();
+            parent_maf_files = phenotype_selector("Parent");
+
+            if (parent_maf_files.size() == 2) {
+                parent_file_wt = parent_maf_files.get(0);
+                parent_file_mt = parent_maf_files.get(1);
+            }
+            //converting to arraylist to check the VCF files
+            if (parent_file_wt != null & parent_file_mt != null) {
+                File[] parent_files_to_check = new File[2];
+                parent_files_to_check[0] = parent_file_wt;
+                parent_files_to_check[1] = parent_file_mt;
+
+                //Validate the VCF files
+                file_checker(parent_files_to_check);
+
+                //Select the child files for use in MAF
+                ArrayList<File> child_maf_files = new ArrayList<>();
+                child_maf_files = phenotype_selector("Children");
+                if (child_maf_files.size() == 2) {
+                    child_files_wt = child_maf_files.get(0);
+                    child_files_mt = child_maf_files.get(1);
+                }
+                if (child_files_wt != null & child_files_mt != null) {
+                    //converting to arraylist to check the VCF files
+                    File[] children = new File[2];
+                    children[0] = child_files_wt;
+                    children[1] = child_files_mt;
+                    file_checker(children);
+                }
+                if (child_files_wt != null & child_files_mt != null & parent_file_wt != null & parent_file_mt != null) {
+                    int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
+                            + "Mapped Allelic Frequency  with " + parent_file_wt.getName() + " and " + parent_file_mt.getName() + " as the wild type and mutant parent files "
+                            + "and " + child_files_wt.getName() + " and " + child_files_mt.getName() + " as the wild type and  mutant Children files - do you want to continue?");
+                }
+            } else if (child_files_wt == null || child_files_mt == null || parent_file_wt == null || parent_file_mt == null) {
+                parent_file_wt = null;
+                parent_file_mt = null;
+                child_files_wt = null;
+                child_files_mt = null;
+                JOptionPane.showMessageDialog(null, "File upload cancelled");
+            }
+
+        } else if (analysisType == "AD") {
             ArrayList<File> AD_files = new ArrayList<>();
             AD_files = phenotype_selector("");
             child_files_wt = AD_files.get(0);
             child_files_mt = AD_files.get(1);
-            
-            if (child_files_wt != null & child_files_mt != null){
-        int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
-                + "Allelic Distance with "+ child_files_wt.getName() + " as the wild type file "
-                        + "and " + child_files_mt.getName()  + " as the mutant file - do you want to continue?");
-        }
-        }
-        else {
-           JFileChooser parent_chooser = new JFileChooser();
-        parent_chooser.setMultiSelectionEnabled(true);
-        parent_chooser.setDialogTitle("Select Parent VCF files");
-        parent_chooser.showOpenDialog(new JFrame());
-        all_files = parent_chooser.getSelectedFiles();
-        file_checker(all_files);
+
+            if (child_files_wt != null & child_files_mt != null) {
+                int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
+                        + "Allelic Distance with " + child_files_wt.getName() + " as the wild type file "
+                        + "and " + child_files_mt.getName() + " as the mutant file - do you want to continue?");
+            }
+        } else if (analysisType == "HM") {
+            //Remove the multi-option select meaning the user can only select one file 
+            JFileChooser parent_chooser = new JFileChooser();
+
+            parent_chooser.setDialogTitle("Select VCF file");
+            parent_chooser.showOpenDialog(new JFrame());
+            hom_file = parent_chooser.getSelectedFile();
+            File[] hom_file_check = new File[1];
+            hom_file_check[0] = hom_file;
+            if (hom_file != null) {
+                file_checker(hom_file_check);
+            } else if (hom_file == null) {
+                JOptionPane.showMessageDialog(null, "File upload cancelled");
+
+            }
+        } else {
+            JFileChooser parent_chooser = new JFileChooser();
+            parent_chooser.setMultiSelectionEnabled(true);
+            parent_chooser.setDialogTitle("Select Parent VCF files");
+            parent_chooser.showOpenDialog(new JFrame());
+            all_files = parent_chooser.getSelectedFiles();
+            file_checker(all_files);
         }
         //return files;
     }
-    
-    
-    public static ArrayList<File> phenotype_selector(String message){
+
+    public static ArrayList<File> phenotype_selector(String message) {
         ArrayList<File> phenotype_files = new ArrayList<>();
-        
+
         JFileChooser wt_chooser = new JFileChooser();
         wt_chooser.setMultiSelectionEnabled(true);
         //Select the file chooser as Parent VCF files
@@ -160,123 +162,118 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         wt_chooser.showOpenDialog(new JFrame());
         File wt = null;
         wt = wt_chooser.getSelectedFile();
-        
+
         phenotype_files.add(wt);
-        if (phenotype_files.size() !=0){
-        JFileChooser mt_chooser = new JFileChooser();
-        mt_chooser.setMultiSelectionEnabled(true);
-        //Select the file chooser as Parent VCF files
-        mt_chooser.setDialogTitle("Select mutant type " + message + " VCF file");
-        mt_chooser.showOpenDialog(new JFrame());
-        File mt = null;
-        mt = mt_chooser.getSelectedFile();
-        phenotype_files.add(mt);
+        if (wt != null) {
+            JFileChooser mt_chooser = new JFileChooser();
+            mt_chooser.setMultiSelectionEnabled(true);
+            //Select the file chooser as Parent VCF files
+            mt_chooser.setDialogTitle("Select mutant type " + message + " VCF file");
+            mt_chooser.showOpenDialog(new JFrame());
+            File mt = null;
+            mt = mt_chooser.getSelectedFile();
+            phenotype_files.add(mt);
         }
-        
-        return(phenotype_files);
+
+        return (phenotype_files);
     }
-    
+
     public static void file_checker(File[] files) {
-               for (File fn : files){
-            if(fn.getName().endsWith("fa")||(fn.getName().endsWith("vcf"))||(fn.getName().endsWith("gff"))||(fn.getName().endsWith("gff3")) || (fn.getName().endsWith("fasta"))){
-               
+        for (File fn : files) {
+            if (fn.getName().endsWith("fa") || (fn.getName().endsWith("vcf")) || (fn.getName().endsWith("gff")) || (fn.getName().endsWith("gff3")) || (fn.getName().endsWith("fasta"))) {
+
                 /**
-                 * Selecting the files needed with filechooser, and they are file only ending with certain extension and it passes it to Reader
+                 * Selecting the files needed with filechooser, and they are
+                 * file only ending with certain extension and it passes it to
+                 * Reader
                  */
                 if (fn.getName().endsWith("vcf")) {
-                  
-                FileValidator.vcf_content_checker(String.valueOf(fn));
-                //put the vcf file name in a hashmap next to the full path
-                //This is useful when you want to locate the file through the filename
-                vcfFiles.put(fn.getName(), String.valueOf(fn));
-                
+
+                    FileValidator.vcf_content_checker(String.valueOf(fn));
+                    //put the vcf file name in a hashmap next to the full path
+                    //This is useful when you want to locate the file through the filename
+                    vcfFiles.put(fn.getName(), String.valueOf(fn));
+
                 } else if (fn.getName().endsWith("gff")) {
                     FileValidator.gff_content_checker(String.valueOf(fn));
-                }
-                
-                else if ((fn.getName().endsWith("fasta"))||(fn.getName()).endsWith("fa")) {
+                } else if ((fn.getName().endsWith("fasta")) || (fn.getName()).endsWith("fa")) {
                     FileValidator.fasta_content_checker(fn);
                 }
                 System.out.println(fn);
                 //Reader reader = new Reader(files);
 
-
             } else {
-                
+
                 //If the file the user selects is not ending in fasta/fa or VCF or gff or gff3 this option appears
                 //asking the user to select what type of file it is.
                 String[] file_choices = {"Fasta file", "Variant Call File (VCF)", "GFF/GTF File"};
                 // turns the file to a string
                 String file = String.valueOf(fn.getName());
                 //Brings up a option file child_chooser so the user can select what type of file the program is expecting 
-                Object selected = JOptionPane.showInputDialog(null, "File: "+ file + "does not appear to be a VCF "
-                        + "GFF or Fasta file.  What type of file is " + file + "?"
-                           , "Unknown file chooser", JOptionPane.DEFAULT_OPTION, null, file_choices, "0");
+                Object selected = JOptionPane.showInputDialog(null, "File: " + file + "does not appear to be a VCF "
+                        + "GFF or Fasta file.  What type of file is " + file + "?",
+                         "Unknown file chooser", JOptionPane.DEFAULT_OPTION, null, file_choices, "0");
                 //if there is a selection - run the type of file through the file validator calss to check the 
                 //content of the file
                 if (selected != null) {//null if the user cancels. 
                     String selectedString = selected.toString();
                     if (selectedString == "Variant Call File (VCF)") {
-                      FileValidator.vcf_content_checker(file);
-                      
+                        FileValidator.vcf_content_checker(file);
+
                     } else if (selectedString == "Fasta file") {
 
                     } else if (selectedString == "GFF/GTF File") {
                         FileValidator.gff_content_checker(file);
 
                     }
-                // The file validation process is cancelled if the user hits cancelled
+                    // The file validation process is cancelled if the user hits cancelled
                 } else {
                     System.out.println("User cancelled");
                 }
-                
-                JOptionPane.showMessageDialog(null, "Please Select the right File For this Experiment");
-                
-            }
 
-            
+                JOptionPane.showMessageDialog(null, "Please Select the right File For this Experiment");
+
+            }
 
         }
 
-       
     }
-    
-    public void set_text_area(File[] files){
-              for (File F: files ){
-            if(F.isFile()) {
-                String  FilesSelected=F.getName();
-                String    PathsOfFile=F.getAbsolutePath();
-                if (!listOf_FileSelected.contains(FilesSelected)){
+
+    public void set_text_area(File[] files) {
+        for (File F : files) {
+            if (F.isFile()) {
+                String FilesSelected = F.getName();
+                String PathsOfFile = F.getAbsolutePath();
+                if (!listOf_FileSelected.contains(FilesSelected)) {
                     listOf_FileSelected.add(FilesSelected);
                     listOfPaths.add(PathsOfFile);
-                    if(FilesSelected.endsWith(".vcf")){
+                    if (FilesSelected.endsWith(".vcf")) {
                         jTextArea1.append(FilesSelected + "\n");
-                    } else if (FilesSelected.endsWith(".gff")){
+                    } else if (FilesSelected.endsWith(".gff")) {
                         jTextArea3.append(FilesSelected + "\n");
-                    } else if (FilesSelected.endsWith(".fa") || FilesSelected.endsWith(".fasta")){
+                    } else if (FilesSelected.endsWith(".fa") || FilesSelected.endsWith(".fasta")) {
                         jTextArea2.append(FilesSelected + "\n");
                     }
                 }
             }
-           // System.out.println(listOfPaths);
+            // System.out.println(listOfPaths);
 
         }
         // DefaultListModel listModel2 = new DefaultListModel();
-        for (int i = 0; i < listOfPaths.size(); i++){ 
+        for (int i = 0; i < listOfPaths.size(); i++) {
             if (listOf_FileSelected.get(i).endsWith(".vcf") & !listModelOfSelectedFile.contains(listOf_FileSelected.get(i))) {
                 listModelOfSelectedFile.addElement(listOf_FileSelected.get(i));
-            // listModel2.addElement(listOfPaths.get(i));
+                // listModel2.addElement(listOfPaths.get(i));
                 jList1.setModel(listModelOfSelectedFile);
             }
-            
+
         }
     }
-    
-    
-    public static void remove_uploaded_files(String file_name){
+
+    public static void remove_uploaded_files(String file_name) {
         listOf_FileSelected.remove(file_name);
     }
-               
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -373,6 +370,11 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         });
 
         jRadioButton2.setText("Homozygosity Mapping");
+        jRadioButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButton2ActionPerformed(evt);
+            }
+        });
 
         jRadioButton3.setText("Allelic Distance");
         jRadioButton3.addActionListener(new java.awt.event.ActionListener() {
@@ -818,46 +820,38 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void groupButton(){
+    private void groupButton() {
         ButtonGroup bgroup1 = new ButtonGroup();
         bgroup1.add(Mapped_Allele_Frequency);
         bgroup1.add(jRadioButton2);
         bgroup1.add(jRadioButton3);
     }
-    
+
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         //get the files from the upload files method. This allow the program to call
         //this method to upload addtional files in case any files fail validation
         upload_files();
         set_text_area(all_files);
-  
 
-
-    
-    
-       
 
     }//GEN-LAST:event_jMenuItem1ActionPerformed
-   
+
     private void Mapped_Allele_FrequencyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Mapped_Allele_FrequencyActionPerformed
-        
+
         //jRadioButton2.setEnabled(FALSE);
         analysisType = "MAF";
         upload_files();
-        
-        
-        if (child_files != null & parent_files != null){
+
+        if (child_files != null & parent_files != null) {
             set_text_area(child_files);
             set_text_area(parent_files);
         }
-       
-       
-       
-        
+
+
     }//GEN-LAST:event_Mapped_Allele_FrequencyActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jList1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jList1MouseClicked
@@ -867,25 +861,40 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         //finds the selected entry in the vcffile name hashmap created when the user uploads a vcf file
         String val = String.valueOf(vcfFiles.get(entry));
         //sets the jlabel to the info got from the VCF file info finder
-         variant_count.setText(" "+ VcfInfo.getVariantCnt(val));
-                InsertionMC.setText(" "+ VcfInfo.getInsMutCnt(val));
-                SubsititionMC.setText(" "+ VcfInfo.getSubMutCnt(val));
-                DeletionMC.setText(" "+ VcfInfo.getDelMutCnt(val));
+        variant_count.setText(" " + VcfInfo.getVariantCnt(val));
+        InsertionMC.setText(" " + VcfInfo.getInsMutCnt(val));
+        SubsititionMC.setText(" " + VcfInfo.getSubMutCnt(val));
+        DeletionMC.setText(" " + VcfInfo.getDelMutCnt(val));
     }//GEN-LAST:event_jList1MouseClicked
 
     private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton3ActionPerformed
         analysisType = "AD";
         upload_files();
-        if (child_files_wt != null & child_files_mt  != null){
+        if (child_files_wt != null & child_files_mt != null) {
             File[] files_to_print = new File[2];
-            files_to_print[0]=child_files_wt;
-            files_to_print[1]=child_files_mt;
-            
+            files_to_print[0] = child_files_wt;
+            files_to_print[1] = child_files_mt;
+
             set_text_area(files_to_print);
             //set_text_area(child_files_mt);
         }
     }//GEN-LAST:event_jRadioButton3ActionPerformed
-    
+
+    private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
+        analysisType = "HM";
+        upload_files();
+        File[] files_to_print = new File[1];
+        files_to_print[0] = hom_file;
+        ;
+
+        if (hom_file != null) {
+
+            set_text_area(files_to_print);
+        }
+
+
+    }//GEN-LAST:event_jRadioButton2ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -905,11 +914,11 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         } catch (ClassNotFoundException ex) {
 //            java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-      //      java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            //      java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-          //  java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            //  java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-          //  java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            //  java.util.logging.Logger.getLogger(BSA_Visualisation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>

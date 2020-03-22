@@ -42,6 +42,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     static File child_files_wt = null;
     static File child_files_mt = null;
     static File hom_file = null;
+    static Integer file_val = 0;
 
     static File[] all_files = null; //generic file uploaded
     // Reader reader;
@@ -81,12 +82,6 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             }
             //converting to arraylist to check the VCF files
             if (parent_file_wt != null & parent_file_mt != null) {
-               
-
-                //Validate the VCF files
-               
-
-                //Select the child files for use in MAF
                 ArrayList<File> child_maf_files = new ArrayList<>();
                 child_maf_files = phenotype_selector("Children");
                 if (child_maf_files.size() == 2) {
@@ -155,10 +150,12 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         wt_chooser.showOpenDialog(new JFrame());
         File wt = null;
         wt = wt_chooser.getSelectedFile();
+        if (wt != null){
         file_checker(wt);
-
+        
         phenotype_files.add(wt);
-        if (wt != null) {
+        }
+        if (wt != null & file_val == 0) {
             JFileChooser mt_chooser = new JFileChooser();
             mt_chooser.setMultiSelectionEnabled(true);
             //Select the file chooser as Parent VCF files
@@ -167,7 +164,9 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             File mt = null;
             mt = mt_chooser.getSelectedFile();
             phenotype_files.add(mt);
+            if (mt != null){
             file_checker(mt);
+            }
         }
 
         return (phenotype_files);
@@ -193,7 +192,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                  */
                 if (fn.getName().endsWith("vcf")) {
 
-                    FileValidator.vcf_content_checker(String.valueOf(fn));
+                    file_val = FileValidator.vcf_content_checker(String.valueOf(fn));
                     //put the vcf file name in a hashmap next to the full path
                     //This is useful when you want to locate the file through the filename
                     vcfFiles.put(fn.getName(), String.valueOf(fn));

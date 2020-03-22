@@ -115,7 +115,7 @@ public class VcfFilter {
 
 		HashMap<String, String> mutCompMap1 = filtVarsMapMaker(vcf1);
 		HashMap<String, String> mutCompMap2 = filtVarsMapMaker(vcf2);
-		
+
 		ArrayList<HashMap<String, String>> run1 = filtVarsMapUpdate(mutCompMap1, mutCompMap2, vcf1);
 		mutCompMap1 = run1.get(0);
 		mutCompMap2 = run1.get(1);
@@ -198,7 +198,7 @@ public class VcfFilter {
 		}
 		out.add(map1);
 		out.add(map2);
-		
+
 		return out;
 	}
 
@@ -278,8 +278,27 @@ public class VcfFilter {
 		}
 		out[0] = mut;
 		out[1] = norm;
-		System.out.println(out[0]);
+
 		return out;
+	}
+
+	/**
+	 * Method performs all the necessary filtering for the Homozygosity mapping
+	 * method.
+	 * 
+	 * @param vcf
+	 * @return ArrayList<String> containing the filtered lines for the vcf
+	 */
+	public static ArrayList<String> HMFilter(ArrayList<String> vcf) {
+		return filterUnMapped(vcf);
+	}
+
+	public static void ADFilter() {
+
+	}
+
+	public static void MAFFilter() {
+
 	}
 
 	public int getMQThreshold() {

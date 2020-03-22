@@ -205,8 +205,8 @@ public class FileValidator {
             int line_counter =1;
             //if the user selects cancel this will prevent the rest of the methof from executing
             boolean method_skip = FALSE;
-            // sentinal variable for if a file is not validated 
-            int file_val = 0;
+            // sentinal variable for if a file is validated 
+            int file_val = 1;
        
         try {
                 BufferedReader reader = new BufferedReader(new FileReader(user_file));
@@ -223,13 +223,15 @@ public class FileValidator {
                             + " (error code 2)");
                     //allows the user to retry the upload with an alternate file
                     if (user_option == 0) {
-                        BSA_Visualisation.upload_files();
+                        
+                        method_skip = TRUE;
+                        file_val = 0;
                     } 
                     
                     else if(user_option ==2 ){
                         JOptionPane.showMessageDialog(null, "File validation cancelled - method selection will exit");
                         method_skip = TRUE;
-                        file_val = 1;
+                        file_val = 3;
                         
                     }
                     else {
@@ -258,7 +260,7 @@ public class FileValidator {
                     line_counter+=1;
                 }
                 
-                if (header_line == FALSE){
+                if (header_line == FALSE & method_skip == FALSE){
                     //initiise int to get the user's response from the file dialog box. If the user selects 'No' it returns the value 1
                     //if the user selects 'yes' it returns 0.
                     int user_option = JOptionPane.showConfirmDialog(null, "FATAL - Uploaded"
@@ -270,7 +272,7 @@ public class FileValidator {
                     } 
                     //If the user cancels or clicks no exectute this statement which closes the method
                     else if (user_option == 2 || user_option ==1) {
-                        file_val = 1;
+                        file_val = 3;
                         method_skip = TRUE;        
                                 }
                     else {

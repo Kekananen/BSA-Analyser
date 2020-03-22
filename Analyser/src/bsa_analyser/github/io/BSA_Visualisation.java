@@ -7,6 +7,7 @@ package bsa_analyser.github.io;
 
 import java.io.File;
 import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +63,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
      * @return A list of user files
      */
     public static void upload_files() {
+        int repeat_check = 0;
         //Initialise an empty variable for a list of files
         //File[] files = null;
         //A series of if statments which brings up a different file child_chooser 
@@ -81,7 +83,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 parent_file_mt = parent_maf_files.get(1);
             }
             //converting to arraylist to check the VCF files
-            if (parent_file_wt != null & parent_file_mt != null) {
+            System.out.println(file_val);
+            System.out.println(parent_file_wt);
+            System.out.println(parent_file_mt);
+            if (parent_file_wt != null & parent_file_mt != null & file_val !=3) {
                 ArrayList<File> child_maf_files = new ArrayList<>();
                 child_maf_files = phenotype_selector("Children");
                 if (child_maf_files.size() == 2) {
@@ -106,13 +111,16 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         } else if (analysisType == "AD") {
             ArrayList<File> AD_files = new ArrayList<>();
             AD_files = phenotype_selector("");
-            child_files_wt = AD_files.get(0);
-            child_files_mt = AD_files.get(1);
-
+              if (AD_files.size() == 2) {
+                child_files_wt = AD_files.get(0);
+                child_files_mt = AD_files.get(1);
+            }
+            
             if (child_files_wt != null & child_files_mt != null) {
                 int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
                         + "Allelic Distance with " + child_files_wt.getName() + " as the wild type file "
                         + "and " + child_files_mt.getName() + " as the mutant file - do you want to continue?");
+                
             }
         } else if (analysisType == "HM") {
             //Remove the multi-option select meaning the user can only select one file 
@@ -141,34 +149,65 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     }
 
     public static ArrayList<File> phenotype_selector(String message) {
+        file_val = 0;
         ArrayList<File> phenotype_files = new ArrayList<>();
-
         JFileChooser wt_chooser = new JFileChooser();
+        File wt = null;
+        while(file_val == 0) {
         wt_chooser.setMultiSelectionEnabled(true);
         //Select the file chooser as Parent VCF files
         wt_chooser.setDialogTitle("Select wild type " + message + " VCF file");
         wt_chooser.showOpenDialog(new JFrame());
-        File wt = null;
         wt = wt_chooser.getSelectedFile();
+        if (wt == null){
+            break;
+        }
         if (wt != null){
         file_checker(wt);
-        
+            
+        if (file_val == 1) {
         phenotype_files.add(wt);
         }
-        if (wt != null & file_val == 0) {
+        }
+        if (file_val ==3 ){
+            break;
+        }
+        }
+        
+        if (wt != null ) {
+            System.out.println("Entering mt selector ");
+            if (file_val != 3){
+            file_val = 0;
+            File mt = null;
+            while(file_val == 0) {
+                
             JFileChooser mt_chooser = new JFileChooser();
             mt_chooser.setMultiSelectionEnabled(true);
             //Select the file chooser as Parent VCF files
             mt_chooser.setDialogTitle("Select mutant type " + message + " VCF file");
             mt_chooser.showOpenDialog(new JFrame());
-            File mt = null;
             mt = mt_chooser.getSelectedFile();
-            phenotype_files.add(mt);
+              if (mt == null){
+            break;
+        }
+            
+            
             if (mt != null){
             file_checker(mt);
             }
+            System.out.println("phenotype selector "+ file_val);
+            if (file_val == 1) {
+        
+        
+            phenotype_files.add(mt);
+            }
+            if (file_val ==3 ){
+            break;
         }
-
+            }
+        }
+        }
+        
         return (phenotype_files);
     }
     
@@ -207,34 +246,8 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
             } else {
 
-                //If the file the user selects is not ending in fasta/fa or VCF or gff or gff3 this option appears
-                //asking the user to select what type of file it is.
-                String[] file_choices = {"Fasta file", "Variant Call File (VCF)", "GFF/GTF File"};
-                // turns the file to a string
-                String file = String.valueOf(fn.getName());
-                //Brings up a option file child_chooser so the user can select what type of file the program is expecting 
-                Object selected = JOptionPane.showInputDialog(null, "File: " + file + "does not appear to be a VCF "
-                        + "GFF or Fasta file.  What type of file is " + file + "?",
-                         "Unknown file chooser", JOptionPane.DEFAULT_OPTION, null, file_choices, "0");
-                //if there is a selection - run the type of file through the file validator calss to check the 
-                //content of the file
-                if (selected != null) {//null if the user cancels. 
-                    String selectedString = selected.toString();
-                    if (selectedString == "Variant Call File (VCF)") {
-                        FileValidator.vcf_content_checker(file);
 
-                    } else if (selectedString == "Fasta file") {
-
-                    } else if (selectedString == "GFF/GTF File") {
-                        FileValidator.gff_content_checker(file);
-
-                    }
-                    // The file validation process is cancelled if the user hits cancelled
-                } else {
-                    System.out.println("User cancelled");
-                }
-
-                JOptionPane.showMessageDialog(null, "Please Select the right File For this Experiment");
+                
 
             }
 

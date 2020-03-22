@@ -36,7 +36,7 @@ public class VcfFilter {
 	 * @return a HashMap<String, String> that contains a list of lines that meets
 	 *         the filter criteria.
 	 */
-	public static ArrayList<String> filterUnMapped(ArrayList<String> vcf) {
+	private static ArrayList<String> filterUnMapped(ArrayList<String> vcf) {
 		// Holds a comparison pool made from the first pool given.
 		ArrayList<String> filtVcf = new ArrayList<String>();
 
@@ -106,7 +106,7 @@ public class VcfFilter {
 	 * @return an ArrayList containing two filtered ArrayLists.
 	 */
 	@SuppressWarnings("rawtypes")
-	public static ArrayList[] filtVars(ArrayList<String> vcf1, ArrayList<String> vcf2) {
+	private static ArrayList<ArrayList<String>> filtVars(ArrayList<ArrayList<String>> vcfs) {
 		// Holds a comparison pool made from the first pool given.
 		ArrayList[] mutCompVcf = new ArrayList[2];
 
@@ -213,7 +213,7 @@ public class VcfFilter {
 	 *         being the mut and the second position being the norm.
 	 */
 	@SuppressWarnings("rawtypes")
-	public static ArrayList[] parentFilter(ArrayList<String> mut, ArrayList<String> norm) {
+	private static ArrayList[] parentFilter(ArrayList<String> mut, ArrayList<String> norm) {
 		// Holds the list to be output.
 		ArrayList[] out = new ArrayList[2];
 		// 1. Look through the mutant list and split the list to find the chromosomes
@@ -293,12 +293,46 @@ public class VcfFilter {
 		return filterUnMapped(vcf);
 	}
 
-	public static void ADFilter() {
+	/**
+	 * Method performs all the necessary filtering for the Allelic Distance Mapping
+	 * method.
+	 * 
+	 * @param vcf1
+	 * @param vcf2
+	 * @return ArrayList<ArrayList<String>> containing the filtered vcfs
+	 */
+	public static ArrayList<ArrayList<String>> ADFilter(ArrayList<String>[] vcfs) {
+		ArrayList<ArrayList<String>> filtered = new ArrayList<ArrayList<String>>();
+		for (int i = 0; i < vcfs.length; i++) {
+			filtered.add(filterUnMapped(vcfs[i]));
+		}
 
+		return filtVars(filtered);
 	}
 
-	public static void MAFFilter() {
+	/**
+	 * Method performs all the necessary filtering for the Allelic Distance Mapping
+	 * method.
+	 * 
+	 * @param vcf1
+	 * @param vcf2
+	 * @return ArrayList<ArrayList<String>> containing the vcfs that have been
+	 *         filtered with the parents at the very ending two positions
+	 */
+	public static ArrayList<ArrayList<String>> MAFFilter(ArrayList<ArrayList<String>> children, ArrayList<String> p1,
+			ArrayList<String> p2) {
+		ArrayList<ArrayList<String>> filtered = new ArrayList<ArrayList<String>>();
+		for (int i = 0; i < children.size(); i++) {
+			filtered.add(filterUnMapped(children.get(i)));
+		}
 
+		filtered = filtVars(filtered);
+
+		parentFilter(p1, p2);
+		filtered.add(p1);
+		filtered.add(p2);
+
+		return filtered;
 	}
 
 	public int getMQThreshold() {

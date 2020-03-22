@@ -870,9 +870,15 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         analysisType = "MAF";
         upload_files();
 
-        if (child_files != null & parent_files != null) {
-            set_text_area(child_files);
-            set_text_area(parent_files);
+        
+            
+        if (parent_file_wt != null & child_files_wt != null & parent_file_mt != null & child_files_mt != null) {
+            File [] files_to_display =  new File[3];
+            files_to_display[0] = parent_file_wt;
+            files_to_display[1] = parent_file_mt;
+            files_to_display[2] = child_files_wt;
+            files_to_display[0] = child_files_mt;
+            set_text_area(files_to_display);
         }
 
 

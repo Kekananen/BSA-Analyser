@@ -30,16 +30,16 @@ public class VcfFilter {
 	 * variant equal to ./. from the list. Use the GATK recommendations for
 	 * filtering on MQ < 40.0 (Mapping Quality), FS > 60.0 (Phred score Fisher’s
 	 * test p-value for strand bias), QD < 2.0 (Variant Quality / depth of non-ref
-	 * samples).
+	 * samples). 
 	 * 
 	 * @param vcf1 the first vcf file with one phenotype
 	 * @param vcf2 the second vcf file with contrasting phenotype
 	 * @return a HashMap<String, String> that contains a list of lines that meets
 	 *         the filter criteria.
 	 */
-	public static HashMap<String, String> filterUnMapped(ArrayList<String> vcf) {
+	public static ArrayList<String> filterUnMapped(ArrayList<String> vcf) {
 		// Holds a comparison pool made from the first pool given.
-		HashMap<String, String> mappedVcf = new HashMap<String, String>();
+		ArrayList<String> mappedVcf = new ArrayList<String>();
 
 		for (int i = 0; i < vcf.size(); i++) {
 			String[] line = vcf.get(i).split("\t");
@@ -80,10 +80,7 @@ public class VcfFilter {
 									// include them in the key as well as the position coords.
 									String chrom = line[0].split("ch")[1];
 									if (!(chrom.equals("00"))) {
-										String key = chrom + "-" + line[1];
-										// 1.2 Get the observed variant and the alternate.
-										String value = line[3] + ">" + line[4];
-										mappedVcf.put(key, value);
+										mappedVcf.add(vcf.get(i));
 									}
 								}
 							}
@@ -94,9 +91,7 @@ public class VcfFilter {
 		}
 
 		return mappedVcf;
-	}
-	
-	
+	}	
 
 	/**
 	 * Finds the unique variants between two vcfs files, thus filtering out the

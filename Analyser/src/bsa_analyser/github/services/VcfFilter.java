@@ -117,11 +117,11 @@ public class VcfFilter {
 
 		HashMap<String, String> mutCompMap1 = filtVarsMapMaker(vcf1);
 		HashMap<String, String> mutCompMap2 = filtVarsMapMaker(vcf2);
-		
+
 		ArrayList<HashMap<String, String>> run1 = filtVarsMapUpdate(mutCompMap1, mutCompMap2, vcf1);
 		mutCompMap1 = run1.get(0);
 		mutCompMap2 = run1.get(1);
-		
+
 		ArrayList<HashMap<String, String>> run2 = filtVarsMapUpdate(mutCompMap2, mutCompMap1, vcf2);
 		mutCompMap2 = run1.get(0);
 		mutCompMap1 = run1.get(1);
@@ -142,9 +142,10 @@ public class VcfFilter {
 	}
 
 	/**
+	 * Turns an ArrayList containing the HashMap information into a HashMap.
 	 * 
 	 * @param vcf
-	 * @return
+	 * @return a HashMap made from the vcf file in an ArrayList.
 	 */
 	private static HashMap<String, String> filtVarsMapMaker(ArrayList<String> vcf) {
 		HashMap<String, String> mutCompMap = new HashMap<String, String>();
@@ -166,11 +167,13 @@ public class VcfFilter {
 	}
 
 	/**
+	 * Updates the HashMaps to not contain the same variants as the other.
 	 * 
-	 * @param map1
-	 * @param map2
+	 * @param map1 first map to be compared containing vcf values
+	 * @param map2 first map to be compared containing vcf values
 	 * @param vcf
-	 * @return
+	 * @return an arraylist of size 2 with the two updated hashmaps with the first
+	 *         given map1 at position 0 and the second at position1.
 	 */
 	private static ArrayList<HashMap<String, String>> filtVarsMapUpdate(HashMap<String, String> map1,
 			HashMap<String, String> map2, ArrayList<String> vcf) {

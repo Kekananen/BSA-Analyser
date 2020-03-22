@@ -125,7 +125,7 @@ public class VcfFilter {
 		ArrayList<HashMap<String, String>> run2 = filtVarsMapUpdate(mutCompMap2, mutCompMap1, vcf2);
 		mutCompMap2 = run2.get(0);
 		mutCompMap1 = run2.get(1);
-		
+
 		Object[] keys1 = mutCompMap1.keySet().toArray();
 		for (int i = 0; i < mutCompMap1.size(); i++) {
 			out1.add(mutCompMap1.get(keys1[i]));
@@ -137,7 +137,7 @@ public class VcfFilter {
 			out2.add(mutCompMap2.get(keys2[i]));
 		}
 		mutCompVcf[1] = out2;
-		
+
 		return mutCompVcf;
 	}
 
@@ -203,24 +203,73 @@ public class VcfFilter {
 
 		return out;
 	}
-	
-	public static HashMap<String, ArrayList<String>> parentFilter(ArrayList<String> mut, ArrayList<String> norm) {
-		HashMap<String, ArrayList<String>> out = new HashMap<String, ArrayList<String>>();
-		
-		for(int i = 0; i < mut.size(); i++) {
+
+	/**
+	 * Finds the alleles shared between the two parents given there are multiple
+	 * variants and removes them from both of the parents. An example of this case
+	 * is the alt in the norm being A,T and the alt being A in the mutant.
+	 * 
+	 * @param mut the mutant parent
+	 * @param norm the normal parent
+	 * @return a list of type ArrayList that is of size two with the first position
+	 *         being the mut and the second position being the norm.
+	 */
+	@SuppressWarnings("rawtypes")
+	public static ArrayList[] parentFilter(ArrayList<String> mut, ArrayList<String> norm) {
+		// Holds the list to be output.
+		ArrayList[] out = new ArrayList[2];
+
+		for (int i = 0; i < mut.size(); i++) {
 			String[] line = mut.get(i).split("\t");
 			if (!(line[0].startsWith("#"))) {
-				for(int j = 0; j < norm.size(); j++) {
-					String[] compline = mut.get(i).split("\t");
+				String mutMatch = line[0].split("ch")[1] + "-" + line[1];
+
+				for (int j = 0; j < norm.size(); j++) {
+					String[] compline = norm.get(j).split("\t");
 					if (!(compline[0].startsWith("#"))) {
-						if(line[0].equals(compline[0])) {
-							System.out.println(line);
-							System.out.println(compline);
+						String normMatch = compline[0].split("ch")[1] + "-" + compline[1];
+						if (mutMatch.equals(normMatch)) {
+
+							if (line[4].contains(",") && !(compline[4].contains(","))) {
+								String[] alts = line[4].split(",");
+								for (int k = 0; k < alts.length; k++) {
+									if (alts[k].equals(compline[4])) {
+										mut.remove(i);
+										norm.remove(j);
+									}
+								}
+							}
+
+							if (compline[4].contains(",") && !(line[4].contains(","))) {
+								String[] alts = compline[4].split(",");
+								for (int k = 0; k < alts.length; k++) {
+									if (alts[k].equals(line[4])) {
+										mut.remove(i);
+										norm.remove(j);
+									}
+								}
+							}
+
+							if (line[4].contains(",") && compline[4].contains(",")) {
+								String[] altsComp = compline[4].split(",");
+								String[] altsLine = line[4].split(",");
+								for (int k = 0; k < altsComp.length; k++) {
+									for (int l = 0; l < altsLine.length; l++) {
+										if (altsComp[k].equals(altsLine[l])) {
+											mut.remove(i);
+											norm.remove(j);
+										}
+									}
+								}
+							}
 						}
 					}
 				}
 			}
 		}
+		out[0] = mut;
+		out[1] = norm;
+
 		return out;
 	}
 

@@ -193,16 +193,35 @@ public class VcfFilter {
 						map1.remove(match);
 						// 3. Add in the remaining positions from the second array list to the HashMap.
 					} else {
-						String key = line[0].split("ch")[1] + "-" + line[1];
-
-						map2.put(match, key);
+						map2.put(match, vcf.get(i));
 					}
 				}
 			}
 		}
 		out.add(map1);
 		out.add(map2);
+		System.out.println(map1);
 
+		return out;
+	}
+	
+	public static HashMap<String, ArrayList<String>> parentFilter(ArrayList<String> mut, ArrayList<String> norm) {
+		HashMap<String, ArrayList<String>> out = new HashMap<String, ArrayList<String>>();
+		
+		for(int i = 0; i < mut.size(); i++) {
+			String[] line = mut.get(i).split("\t");
+			if (!(line[0].startsWith("#"))) {
+				for(int j = 0; j < norm.size(); j++) {
+					String[] compline = mut.get(i).split("\t");
+					if (!(compline[0].startsWith("#"))) {
+						if(line[0].equals(compline[0])) {
+							System.out.println(line);
+							System.out.println(compline);
+						}
+					}
+				}
+			}
+		}
 		return out;
 	}
 

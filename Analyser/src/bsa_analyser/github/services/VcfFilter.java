@@ -88,7 +88,6 @@ public class VcfFilter {
 				}
 			}
 		}
-
 		return filtVcf;
 	}
 
@@ -116,7 +115,7 @@ public class VcfFilter {
 
 		HashMap<String, String> mutCompMap1 = filtVarsMapMaker(vcf1);
 		HashMap<String, String> mutCompMap2 = filtVarsMapMaker(vcf2);
-
+		
 		ArrayList<HashMap<String, String>> run1 = filtVarsMapUpdate(mutCompMap1, mutCompMap2, vcf1);
 		mutCompMap1 = run1.get(0);
 		mutCompMap2 = run1.get(1);
@@ -187,17 +186,19 @@ public class VcfFilter {
 				// in one vcf doesn't mean it's unmapped in the other.
 				for (int j = 0; j < map1.size(); j++) {
 					if (map1.containsKey(match)) {
-						map1.remove(match);
-						// 3. Add in the remaining positions from the second array list to the HashMap.
-					} else {
-						map2.put(match, vcf.get(i));
+						if (map1.get(match).split("\t")[4].equals(map2.get(match).split("\t")[4])) {
+							map1.remove(match);
+						} else {
+							// 3. Add in the remaining positions from the second array list to the HashMap.
+							map2.put(match, map2.get(match));
+						}
 					}
 				}
 			}
 		}
 		out.add(map1);
 		out.add(map2);
-
+		
 		return out;
 	}
 
@@ -211,74 +212,78 @@ public class VcfFilter {
 	 * @return a list of type ArrayList that is of size two with the first position
 	 *         being the mut and the second position being the norm.
 	 */
-	@SuppressWarnings("rawtypes")
-	public static ArrayList[] parentFilter(ArrayList<String> mut, ArrayList<String> norm) {
-		// Holds the list to be output.
-		ArrayList[] out = new ArrayList[2];
-		// 1. Look through the mutant list and split the list to find the chromosomes
-		// and positions for a later comparison to the normal parent type.
-		for (int i = 0; i < mut.size(); i++) {
-			String[] line = mut.get(i).split("\t");
-			if (!(line[0].startsWith("#"))) {
-				String mutMatch = line[0].split("ch")[1] + "-" + line[1];
-				// 2. Look through the normal parent and compare it to the mutant parent.
-				for (int j = 0; j < norm.size(); j++) {
-					String[] compline = norm.get(j).split("\t");
-					if (!(compline[0].startsWith("#"))) {
-						String normMatch = compline[0].split("ch")[1] + "-" + compline[1];
-						// 2.1 If the mutant parent matches the chromosome and postion of the normal
-						// parent then look at these lines only.
-						if (mutMatch.equals(normMatch)) {
-							// 2.2 If the lines contain multiple alts then look to see if the alts match
-							// with eith of the other alts in the two parent pools. If they do then they
-							// need to be removed as they are in common and thus can't be the casual
-							// mutation. (might want to look at the penetration of the mutation in the pool
-							// later before remove. May add this later on).
-							if (line[4].contains(",") && !(compline[4].contains(","))) {
-								String[] alts = line[4].split(",");
-								for (int k = 0; k < alts.length; k++) {
-									if (alts[k].equals(compline[4])) {
-										mut.remove(i);
-										norm.remove(j);
-									}
-								}
-							}
-
-							if (compline[4].contains(",") && !(line[4].contains(","))) {
-								String[] alts = compline[4].split(",");
-								for (int k = 0; k < alts.length; k++) {
-									if (alts[k].equals(line[4])) {
-										mut.remove(i);
-										norm.remove(j);
-									}
-								}
-							}
-
-							// If both have alternates then two lists must be iterated through to make sure
-							// none are in common. in general this case should probably be removed but we
-							// will keep it for now since it survived the previous filters.
-							if (line[4].contains(",") && compline[4].contains(",")) {
-								String[] altsComp = compline[4].split(",");
-								String[] altsLine = line[4].split(",");
-								for (int k = 0; k < altsComp.length; k++) {
-									for (int l = 0; l < altsLine.length; l++) {
-										if (altsComp[k].equals(altsLine[l])) {
-											mut.remove(i);
-											norm.remove(j);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		out[0] = mut;
-		out[1] = norm;
-
-		return out;
-	}
+//	@SuppressWarnings("rawtypes")
+//	public static ArrayList[] parentFilter(ArrayList<String> mut, ArrayList<String> norm) {
+//		// Holds the list to be output.
+//		ArrayList[] out = new ArrayList[2];
+//		// 1. Look through the mutant list and split the list to find the chromosomes
+//		// and positions for a later comparison to the normal parent type.
+//		for (int i = 0; i < mut.size(); i++) {
+//			String[] line = mut.get(i).split("\t");
+//			if (!(line[0].startsWith("#"))) {
+//				String mutMatch = line[0].split("ch")[1] + "-" + line[1];
+//				// 2. Look through the normal parent and compare it to the mutant parent.
+//				for (int j = 0; j < norm.size(); j++) {
+//					String[] compline = norm.get(j).split("\t");
+//					if (!(compline[0].startsWith("#"))) {
+//						String normMatch = compline[0].split("ch")[1] + "-" + compline[1];
+//						// 2.1 If the mutant parent matches the chromosome and postion of the normal
+//						// parent then look at these lines only.
+//						if (mutMatch.equals(normMatch)) {
+//							System.out.println(mut.get(i));
+//							System.out.println(norm.get(j));
+//							// 2.2 If the lines contain multiple alts then look to see if the alts match
+//							// with either of the other alts in the two parent pools. If they do then they
+//							// need to be removed as they are in common and thus can't be the casual
+//							// mutation. (might want to look at the penetration of the mutation in the pool
+//							// later before remove. May add this later on).
+//							if (line[4].contains(",") && !(compline[4].contains(","))) {
+//								System.out.println("hit");
+//								String[] alts = line[4].split(",");
+//								for (int k = 0; k < alts.length; k++) {
+//									if (alts[k].equals(compline[4])) {
+//										mut.remove(i);
+//										norm.remove(j);
+//									}
+//								}
+//							}
+//
+//							if (compline[4].contains(",") && !(line[4].contains(","))) {
+//								System.out.println("hit");
+//								String[] alts = compline[4].split(",");
+//								for (int k = 0; k < alts.length; k++) {
+//									if (alts[k].equals(line[4])) {
+//										mut.remove(i);
+//										norm.remove(j);
+//									}
+//								}
+//							}
+//
+//							// If both have alternates then two lists must be iterated through to make sure
+//							// none are in common. in general this case should probably be removed but we
+//							// will keep it for now since it survived the previous filters.
+//							if (line[4].contains(",") && compline[4].contains(",")) {
+//								String[] altsComp = compline[4].split(",");
+//								String[] altsLine = line[4].split(",");
+//								for (int k = 0; k < altsComp.length; k++) {
+//									for (int l = 0; l < altsLine.length; l++) {
+//										if (altsComp[k].equals(altsLine[l])) {
+//											mut.remove(i);
+//											norm.remove(j);
+//										}
+//									}
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//		out[0] = mut;
+//		out[1] = norm;
+//
+//		return out;
+//	}
 
 	public int getMQThreshold() {
 		return MQThreshold;

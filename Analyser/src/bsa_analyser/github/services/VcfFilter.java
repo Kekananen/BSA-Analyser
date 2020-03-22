@@ -117,55 +117,14 @@ public class VcfFilter {
 
 		HashMap<String, String> mutCompMap1 = filtVarsMapMaker(vcf1);
 		HashMap<String, String> mutCompMap2 = filtVarsMapMaker(vcf2);
-
-		System.out.println(mutCompMap2.values().size());
-		System.out.println(mutCompMap1.values().size());
-
-		// 2. Compare the 2nd pool to the 1st for every position and if there is a match
-		// remove them from the mutCompPool map as if they are found in both pools it
-		// can't be the casual mutation and is just noise.
-		for (int i = 0; i < vcf1.size(); i++) {
-			String[] line = vcf1.get(i).split("\t");
-			if (!(line[0].startsWith("#"))) {
-				String match = line[0].split("ch")[1] + "-" + line[1];
-				// 2.1 See if the key matches the position in the 2nd pool and if so
-				// remove it; however, only remove it if it's not unmapped as one unmapped
-				// in one vcf doesn't mean it's unmapped in the other.
-				for (int j = 0; j < out1.size(); j++) {
-					if (mutCompMap2.containsKey(match)) {
-						mutCompMap2.remove(match);
-						// 3. Add in the remaining positions from the second array list to the HashMap.
-					} else {
-						String key = line[0].split("ch")[1] + "-" + line[1];
-
-						mutCompMap1.put(match, key);
-					}
-				}
-			}
-		}
-
-		// 2. Compare the 2nd pool to the 1st for every position and if there is a match
-		// remove them from the mutCompPool map as if they are found in both pools it
-		// can't be the casual mutation and is just noise.
-		for (int i = 0; i < vcf2.size(); i++) {
-			String[] line = vcf2.get(i).split("\t");
-			if (!(line[0].startsWith("#"))) {
-				String match = line[0].split("ch")[1] + "-" + line[1];
-				// 2.1 See if the key matches the position in the 2nd pool and if so
-				// remove it; however, only remove it if it's not unmapped as one unmapped
-				// in one vcf doesn't mean it's unmapped in the other.
-				for (int j = 0; j < out2.size(); j++) {
-					if (mutCompMap1.containsKey(match)) {
-						mutCompMap1.remove(match);
-						// 3. Add in the remaining positions from the second array list to the HashMap.
-					} else {
-						String key = line[0].split("ch")[1] + "-" + line[1];
-
-						mutCompMap2.put(match, key);
-					}
-				}
-			}
-		}
+		
+		ArrayList<HashMap<String, String>> run1 = filtVarsMapUpdate(mutCompMap1, mutCompMap2, vcf1);
+		mutCompMap1 = run1.get(0);
+		mutCompMap2 = run1.get(1);
+		
+		ArrayList<HashMap<String, String>> run2 = filtVarsMapUpdate(mutCompMap2, mutCompMap1, vcf2);
+		mutCompMap2 = run1.get(0);
+		mutCompMap1 = run1.get(1);
 
 		Object[] keys1 = mutCompMap1.keySet().toArray();
 		for (int i = 0; i < mutCompMap1.size(); i++) {
@@ -204,6 +163,44 @@ public class VcfFilter {
 		}
 
 		return mutCompMap;
+	}
+
+	/**
+	 * 
+	 * @param map1
+	 * @param map2
+	 * @param vcf
+	 * @return
+	 */
+	private static ArrayList<HashMap<String, String>> filtVarsMapUpdate(HashMap<String, String> map1,
+			HashMap<String, String> map2, ArrayList<String> vcf) {
+		ArrayList<HashMap<String, String>> out = new ArrayList<HashMap<String, String>>();
+		// 2. Compare the 2nd pool to the 1st for every position and if there is a match
+		// remove them from the mutCompPool map as if they are found in both pools it
+		// can't be the casual mutation and is just noise.
+		for (int i = 0; i < vcf.size(); i++) {
+			String[] line = vcf.get(i).split("\t");
+			if (!(line[0].startsWith("#"))) {
+				String match = line[0].split("ch")[1] + "-" + line[1];
+				// 2.1 See if the key matches the position in the 2nd pool and if so
+				// remove it; however, only remove it if it's not unmapped as one unmapped
+				// in one vcf doesn't mean it's unmapped in the other.
+				for (int j = 0; j < map1.size(); j++) {
+					if (map1.containsKey(match)) {
+						map1.remove(match);
+						// 3. Add in the remaining positions from the second array list to the HashMap.
+					} else {
+						String key = line[0].split("ch")[1] + "-" + line[1];
+
+						map2.put(match, key);
+					}
+				}
+			}
+		}
+		out.add(map1);
+		out.add(map2);
+
+		return out;
 	}
 
 	@SuppressWarnings("unchecked")

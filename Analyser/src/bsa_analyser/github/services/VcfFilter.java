@@ -3,7 +3,6 @@ package bsa_analyser.github.services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * This class contains a single method that finds the common alleles between two
@@ -157,8 +156,6 @@ public class VcfFilter {
 				// 1.1 Get the proper label as there could be duplicate positions on the chromos
 				// include them in the key as well as the position coords.
 				String key = line[0].split("ch")[1] + "-" + line[1];
-				// 1.2 Get the observed variant and the alternate.
-				String value = line[3] + ">" + line[4];
 				mutCompMap.put(key, vcf.get(i));
 			}
 		}

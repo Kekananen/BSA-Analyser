@@ -123,9 +123,9 @@ public class VcfFilter {
 		mutCompMap2 = run1.get(1);
 
 		ArrayList<HashMap<String, String>> run2 = filtVarsMapUpdate(mutCompMap2, mutCompMap1, vcf2);
-		mutCompMap2 = run1.get(0);
-		mutCompMap1 = run1.get(1);
-
+		mutCompMap2 = run2.get(0);
+		mutCompMap1 = run2.get(1);
+		
 		Object[] keys1 = mutCompMap1.keySet().toArray();
 		for (int i = 0; i < mutCompMap1.size(); i++) {
 			out1.add(mutCompMap1.get(keys1[i]));
@@ -134,10 +134,10 @@ public class VcfFilter {
 
 		Object[] keys2 = mutCompMap2.keySet().toArray();
 		for (int i = 0; i < mutCompMap2.size(); i++) {
-			out1.add(mutCompMap2.get(keys2[i]));
+			out2.add(mutCompMap2.get(keys2[i]));
 		}
 		mutCompVcf[1] = out2;
-
+		
 		return mutCompVcf;
 	}
 
@@ -200,7 +200,6 @@ public class VcfFilter {
 		}
 		out.add(map1);
 		out.add(map2);
-		System.out.println(map1);
 
 		return out;
 	}

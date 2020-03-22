@@ -81,12 +81,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             }
             //converting to arraylist to check the VCF files
             if (parent_file_wt != null & parent_file_mt != null) {
-                File[] parent_files_to_check = new File[2];
-                parent_files_to_check[0] = parent_file_wt;
-                parent_files_to_check[1] = parent_file_mt;
+               
 
                 //Validate the VCF files
-                file_checker(parent_files_to_check);
+               
 
                 //Select the child files for use in MAF
                 ArrayList<File> child_maf_files = new ArrayList<>();
@@ -95,13 +93,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                     child_files_wt = child_maf_files.get(0);
                     child_files_mt = child_maf_files.get(1);
                 }
-                if (child_files_wt != null & child_files_mt != null) {
-                    //converting to arraylist to check the VCF files
-                    File[] children = new File[2];
-                    children[0] = child_files_wt;
-                    children[1] = child_files_mt;
-                    file_checker(children);
-                }
+               
                 if (child_files_wt != null & child_files_mt != null & parent_file_wt != null & parent_file_mt != null) {
                     int user_option = JOptionPane.showConfirmDialog(null, "You've selected "
                             + "Mapped Allelic Frequency  with " + parent_file_wt.getName() + " and " + parent_file_mt.getName() + " as the wild type and mutant parent files "
@@ -112,6 +104,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                 parent_file_mt = null;
                 child_files_wt = null;
                 child_files_mt = null;
+                analysisType = "";
                 JOptionPane.showMessageDialog(null, "File upload cancelled");
             }
 
@@ -133,21 +126,21 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             parent_chooser.setDialogTitle("Select VCF file");
             parent_chooser.showOpenDialog(new JFrame());
             hom_file = parent_chooser.getSelectedFile();
-            File[] hom_file_check = new File[1];
-            hom_file_check[0] = hom_file;
+           
             if (hom_file != null) {
-                file_checker(hom_file_check);
+                file_checker(hom_file);
             } else if (hom_file == null) {
+                analysisType = "";
                 JOptionPane.showMessageDialog(null, "File upload cancelled");
 
             }
         } else {
             JFileChooser parent_chooser = new JFileChooser();
             parent_chooser.setMultiSelectionEnabled(true);
-            parent_chooser.setDialogTitle("Select Parent VCF files");
+            parent_chooser.setDialogTitle("Select files for upload");
             parent_chooser.showOpenDialog(new JFrame());
             all_files = parent_chooser.getSelectedFiles();
-            file_checker(all_files);
+            //file_checker(all_files);
         }
         //return files;
     }
@@ -162,6 +155,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         wt_chooser.showOpenDialog(new JFrame());
         File wt = null;
         wt = wt_chooser.getSelectedFile();
+        file_checker(wt);
 
         phenotype_files.add(wt);
         if (wt != null) {
@@ -173,13 +167,23 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             File mt = null;
             mt = mt_chooser.getSelectedFile();
             phenotype_files.add(mt);
+            file_checker(mt);
         }
 
         return (phenotype_files);
     }
+    
+    /**
+     * Sets the text area within the program to show the files that have been uploaded
+     * for the current analysis
+     *
+     * @param A list of user selected files
+     * 
+     */
 
-    public static void file_checker(File[] files) {
-        for (File fn : files) {
+    public static void file_checker(File fn) {
+       
+            //if the file ends in the correct extension 
             if (fn.getName().endsWith("fa") || (fn.getName().endsWith("vcf")) || (fn.getName().endsWith("gff")) || (fn.getName().endsWith("gff3")) || (fn.getName().endsWith("fasta"))) {
 
                 /**
@@ -235,20 +239,39 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
             }
 
-        }
+        
 
     }
 
+    
+        /**
+     * Sets the text area within the program to show the files that have been uploaded
+     * for the current analysis
+     *
+     * @param A list of user selected files
+     * 
+     */
+    
+    
     public void set_text_area(File[] files) {
+        //Loop over the files that are passed in as a parameter 
         for (File F : files) {
+            //check if it is a file 
             if (F.isFile()) {
                 String FilesSelected = F.getName();
                 String PathsOfFile = F.getAbsolutePath();
+                //if the file is not already present set it to the text areas 
                 if (!listOf_FileSelected.contains(FilesSelected)) {
                     listOf_FileSelected.add(FilesSelected);
                     listOfPaths.add(PathsOfFile);
                     if (FilesSelected.endsWith(".vcf")) {
                         jTextArea1.append(FilesSelected + "\n");
+                        //add it to the list of files that will appear in the VCF_file info on the next tab
+                        if (!listModelOfSelectedFile.contains(FilesSelected)) {
+                            listModelOfSelectedFile.addElement(F.getName());
+
+                            jList1.setModel(listModelOfSelectedFile);
+                        }
                     } else if (FilesSelected.endsWith(".gff")) {
                         jTextArea3.append(FilesSelected + "\n");
                     } else if (FilesSelected.endsWith(".fa") || FilesSelected.endsWith(".fasta")) {
@@ -256,22 +279,25 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                     }
                 }
             }
-            // System.out.println(listOfPaths);
-
-        }
-        // DefaultListModel listModel2 = new DefaultListModel();
-        for (int i = 0; i < listOfPaths.size(); i++) {
-            if (listOf_FileSelected.get(i).endsWith(".vcf") & !listModelOfSelectedFile.contains(listOf_FileSelected.get(i))) {
-                listModelOfSelectedFile.addElement(listOf_FileSelected.get(i));
-                // listModel2.addElement(listOfPaths.get(i));
-                jList1.setModel(listModelOfSelectedFile);
-            }
-
         }
     }
 
-    public static void remove_uploaded_files(String file_name) {
-        listOf_FileSelected.remove(file_name);
+    public void reset_analysis() {
+        listModelOfSelectedFile.removeAllElements();
+       
+        listOf_FileSelected.clear();
+        jTextArea1.setText("");
+        jTextArea2.setText("");
+        jTextArea3.setText("");
+        analysisType = "";
+        parent_files = null;
+        child_files = null;
+        parent_file_wt = null;
+        parent_file_mt = null;
+        child_files_wt = null;
+        child_files_mt = null;
+        hom_file = null;
+
     }
 
     /**
@@ -830,8 +856,11 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         //get the files from the upload files method. This allow the program to call
         //this method to upload addtional files in case any files fail validation
+        
+        analysisType = "";
         upload_files();
         set_text_area(all_files);
+        
 
 
     }//GEN-LAST:event_jMenuItem1ActionPerformed
@@ -839,6 +868,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     private void Mapped_Allele_FrequencyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Mapped_Allele_FrequencyActionPerformed
 
         //jRadioButton2.setEnabled(FALSE);
+        reset_analysis();
         analysisType = "MAF";
         upload_files();
 
@@ -868,6 +898,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     }//GEN-LAST:event_jList1MouseClicked
 
     private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton3ActionPerformed
+        reset_analysis();
         analysisType = "AD";
         upload_files();
         if (child_files_wt != null & child_files_mt != null) {
@@ -881,6 +912,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     }//GEN-LAST:event_jRadioButton3ActionPerformed
 
     private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
+        reset_analysis();
         analysisType = "HM";
         upload_files();
         File[] files_to_print = new File[1];
@@ -888,9 +920,10 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         ;
 
         if (hom_file != null) {
-
+            
             set_text_area(files_to_print);
         }
+        
 
 
     }//GEN-LAST:event_jRadioButton2ActionPerformed

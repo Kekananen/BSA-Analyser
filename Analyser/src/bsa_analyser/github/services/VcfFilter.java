@@ -209,7 +209,7 @@ public class VcfFilter {
 	 * variants and removes them from both of the parents. An example of this case
 	 * is the alt in the norm being A,T and the alt being A in the mutant.
 	 * 
-	 * @param mut the mutant parent
+	 * @param mut  the mutant parent
 	 * @param norm the normal parent
 	 * @return a list of type ArrayList that is of size two with the first position
 	 *         being the mut and the second position being the norm.
@@ -218,18 +218,25 @@ public class VcfFilter {
 	public static ArrayList[] parentFilter(ArrayList<String> mut, ArrayList<String> norm) {
 		// Holds the list to be output.
 		ArrayList[] out = new ArrayList[2];
-
+		// 1. Look through the mutant list and split the list to find the chromosomes
+		// and positions for a later comparison to the normal parent type.
 		for (int i = 0; i < mut.size(); i++) {
 			String[] line = mut.get(i).split("\t");
 			if (!(line[0].startsWith("#"))) {
 				String mutMatch = line[0].split("ch")[1] + "-" + line[1];
-
+				// 2. Look through the normal parent and compare it to the mutant parent.
 				for (int j = 0; j < norm.size(); j++) {
 					String[] compline = norm.get(j).split("\t");
 					if (!(compline[0].startsWith("#"))) {
 						String normMatch = compline[0].split("ch")[1] + "-" + compline[1];
+						// 2.1 If the mutant parent matches the chromosome and postion of the normal
+						// parent then look at these lines only.
 						if (mutMatch.equals(normMatch)) {
-
+							// 2.2 If the lines contain multiple alts then look to see if the alts match
+							// with eith of the other alts in the two parent pools. If they do then they
+							// need to be removed as they are in common and thus can't be the casual
+							// mutation. (might want to look at the penetration of the mutation in the pool
+							// later before remove. May add this later on).
 							if (line[4].contains(",") && !(compline[4].contains(","))) {
 								String[] alts = line[4].split(",");
 								for (int k = 0; k < alts.length; k++) {
@@ -250,6 +257,9 @@ public class VcfFilter {
 								}
 							}
 
+							// If both have alternates then two lists must be iterated through to make sure
+							// none are in common. in general this case should probably be removed but we
+							// will keep it for now since it survived the previous filters.
 							if (line[4].contains(",") && compline[4].contains(",")) {
 								String[] altsComp = compline[4].split(",");
 								String[] altsLine = line[4].split(",");

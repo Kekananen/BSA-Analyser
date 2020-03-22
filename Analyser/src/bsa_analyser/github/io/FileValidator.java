@@ -203,6 +203,8 @@ public class FileValidator {
             int size_of_header = 0;
             //Keep track of what line the file is on.
             int line_counter =1;
+            //if the user selects cancel this will prevent the rest of the methof from executing
+            boolean method_skip = FALSE;
        
         try {
                 BufferedReader reader = new BufferedReader(new FileReader(user_file));
@@ -214,20 +216,31 @@ public class FileValidator {
                     //initiise int to get the user's response from the file dialog box. If the user selects 'No' it returns the value 1
                     //if the user selects 'yes' it returns 0.
                     int user_option = JOptionPane.showConfirmDialog(null, "This file "
-                            + " does not have fileformat information as the first line."
+                            + "does not have fileformat information as the first line."
                             + " This means the content may not be a VCF file format. Do you wish to upload another file?"
                             + " (error code 2)");
                     //allows the user to retry the upload with an alternate file
                     if (user_option == 0) {
                         BSA_Visualisation.upload_files();
-                    } else {
+                    } 
+                    
+                    else if(user_option ==2 ){
+                        JOptionPane.showMessageDialog(null, "File validation cancelled - method selection will exit");
+                        BSA_Visualisation.main(null);
+                        method_skip = TRUE;
+                        
+                    }
+                    else {
                         
                         System.out.println("WARNING - File not verified as being .vcf (error code 2)");
+                        
                     }
-                    
+                    System.out.println(user_option);
                 }
+                
                 Boolean header_line = FALSE;
                 String line;
+                if (method_skip == FALSE){
                 while ((line = reader.readLine()).startsWith("#")) {
                     if (line.startsWith("#CHROM")) {
                         if (line.contains("POS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"))
@@ -252,11 +265,22 @@ public class FileValidator {
                     //allows the user to retry the upload with an alternate file
                     if (user_option == 0) {
                         //bring up new file chooser dialog box. (first implement file chooser method)
-                    } else {
+                        
+                        
+                    } 
+                    //If the user cancels exectute this statement
+                    else if (user_option ==2) {
+                        BSA_Visualisation.main(null);
+                        method_skip = TRUE;        
+                                }
+                    else {
                         
                         System.out.println("FATAL - File not verified as being .vcf - not valid header. See error code 3");
                     }
                 }
+                
+                }
+                if (method_skip == FALSE) {
                 if (reader.readLine().isBlank()) {
                     line_counter +=1;
                                        //initiise int to get the user's response from the file dialog box. If the user selects 'No' it returns the value 1
@@ -283,7 +307,7 @@ public class FileValidator {
                     
                 }
                 
-                
+                }
                 
         }// this will read the first line// this will read the first line
         catch (Exception ex) {

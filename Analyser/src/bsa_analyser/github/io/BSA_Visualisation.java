@@ -246,7 +246,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     
         /**
      * Sets the text area within the program to show the files that have been uploaded
-     * for the current analysis
+     * for the current analysis also sets the VCF info on the File information tab portion of the GUI
      *
      * @param A list of user selected files
      * 
@@ -269,7 +269,6 @@ public class BSA_Visualisation extends javax.swing.JFrame {
                         //add it to the list of files that will appear in the VCF_file info on the next tab
                         if (!listModelOfSelectedFile.contains(FilesSelected)) {
                             listModelOfSelectedFile.addElement(F.getName());
-
                             jList1.setModel(listModelOfSelectedFile);
                         }
                     } else if (FilesSelected.endsWith(".gff")) {

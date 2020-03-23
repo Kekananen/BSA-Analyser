@@ -89,6 +89,7 @@ public class VcfFilter {
 				}
 			}
 		}
+
 		return filtVcf;
 	}
 
@@ -110,20 +111,37 @@ public class VcfFilter {
 	private static ArrayList<ArrayList<String>> filtVars(ArrayList<ArrayList<String>> filtered) {
 		// Holds a comparison pool made from the first pool given.
 		ArrayList<ArrayList<String>> mutCompVcf = new ArrayList<ArrayList<String>>();
-		HashMap<String, String> mutCompMap = new HashMap<String, String>();
-		
+		ArrayList<HashMap<String, String>> mutCompMap = new ArrayList<HashMap<String, String>>();
+
 		Iterator vcfsIter = filtered.iterator();
+		int cnt = 0;
 		while (vcfsIter.hasNext()) {
 			ArrayList<String> cur = filtered.iterator().next();
 			ArrayList<String> next = (ArrayList<String>) vcfsIter.next();
 
 			ArrayList<HashMap<String, String>> run = filtVarsMapUpdate(filtVarsMapMaker(cur), filtVarsMapMaker(next),
 					next);
-			
-			mutCompMap = 
-			
-		}
 
+			if (mutCompMap.isEmpty()) {
+				mutCompMap.add(run.get(0));
+				mutCompMap.add(run.get(1));
+			} else {
+				mutCompMap.remove(cnt);
+				mutCompMap.add(run.get(0));
+				mutCompMap.add(run.get(1));
+			}			
+			cnt++;
+		}
+		
+		
+		for(int i = 0; i < mutCompMap.size(); i++) {
+			HashMap<String, String> map = mutCompMap.get(i);
+			Object[] keys = map.keySet().toArray();
+			for(int j = 0; j < map.size(); j++) {
+				mutCompVcf.add(map.get(keys[j]));
+			}
+		}
+		
 		return mutCompVcf;
 	}
 
@@ -343,15 +361,17 @@ public class VcfFilter {
 		ArrayList<ArrayList<String>> filtered = new ArrayList<ArrayList<String>>();
 
 		for (int i = 0; i < children.size(); i++) {
-			filtered.add(filterUnMapped(children.get(i)));
+			ArrayList<String> child = children.get(i);
+			filtered.add(filterUnMapped(child));
 		}
-
+		System.out.println("Done1");
 		filtered = filtVars(filtered);
-
-		parentFilter(p1, p2);
-		filtered.add(p1);
-		filtered.add(p2);
-
+		System.out.println("Done2");
+//
+//		parentFilter(p1, p2);
+//		filtered.add(p1);
+//		filtered.add(p2);
+//
 		return filtered;
 	}
 

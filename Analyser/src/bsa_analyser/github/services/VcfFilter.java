@@ -3,6 +3,7 @@ package bsa_analyser.github.services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * This class contains a single method that finds the common alleles between two
@@ -105,39 +106,55 @@ public class VcfFilter {
 	 * @param vcf2 the second vcf file with contrasting phenotype
 	 * @return an ArrayList containing two filtered ArrayLists.
 	 */
-	@SuppressWarnings("rawtypes")
-	private static ArrayList<ArrayList<String>> filtVars(ArrayList<ArrayList<String>> vcfs) {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static ArrayList<ArrayList<String>> filtVars(ArrayList<ArrayList<String>> filtered) {
 		// Holds a comparison pool made from the first pool given.
-		ArrayList[] mutCompVcf = new ArrayList[2];
+		ArrayList<ArrayList<String>> mutCompVcf = new ArrayList<ArrayList<String>>();
+		HashMap<String, String> mutCompMap = new HashMap<String, String>();
+		
+		Iterator vcfsIter = filtered.iterator();
+		while (vcfsIter.hasNext()) {
+			ArrayList<String> cur = filtered.iterator().next();
+			ArrayList<String> next = (ArrayList<String>) vcfsIter.next();
 
-		ArrayList<String> out1 = new ArrayList<String>();
-		ArrayList<String> out2 = new ArrayList<String>();
-
-		HashMap<String, String> mutCompMap1 = filtVarsMapMaker(vcf1);
-		HashMap<String, String> mutCompMap2 = filtVarsMapMaker(vcf2);
-
-		ArrayList<HashMap<String, String>> run1 = filtVarsMapUpdate(mutCompMap1, mutCompMap2, vcf1);
-		mutCompMap1 = run1.get(0);
-		mutCompMap2 = run1.get(1);
-
-		ArrayList<HashMap<String, String>> run2 = filtVarsMapUpdate(mutCompMap2, mutCompMap1, vcf2);
-		mutCompMap2 = run2.get(0);
-		mutCompMap1 = run2.get(1);
-
-		Object[] keys1 = mutCompMap1.keySet().toArray();
-		for (int i = 0; i < mutCompMap1.size(); i++) {
-			out1.add(mutCompMap1.get(keys1[i]));
+			ArrayList<HashMap<String, String>> run = filtVarsMapUpdate(filtVarsMapMaker(cur), filtVarsMapMaker(next),
+					next);
+			
+			mutCompMap = 
+			
 		}
-		mutCompVcf[0] = out1;
-
-		Object[] keys2 = mutCompMap2.keySet().toArray();
-		for (int i = 0; i < mutCompMap2.size(); i++) {
-			out2.add(mutCompMap2.get(keys2[i]));
-		}
-		mutCompVcf[1] = out2;
 
 		return mutCompVcf;
 	}
+
+//
+//		ArrayList<String> out1 = new ArrayList<String>();
+//		ArrayList<String> out2 = new ArrayList<String>();
+//
+//		HashMap<String, String> mutCompMap1 = filtVarsMapMaker(vcf1);
+//		HashMap<String, String> mutCompMap2 = filtVarsMapMaker(vcf2);
+//
+//		ArrayList<HashMap<String, String>> run1 = filtVarsMapUpdate(mutCompMap1, mutCompMap2, vcf1);
+//		mutCompMap1 = run1.get(0);
+//		mutCompMap2 = run1.get(1);
+//
+//		ArrayList<HashMap<String, String>> run2 = filtVarsMapUpdate(mutCompMap2, mutCompMap1, vcf2);
+//		mutCompMap2 = run2.get(0);
+//		mutCompMap1 = run2.get(1);
+//
+//		Object[] keys1 = mutCompMap1.keySet().toArray();
+//		for (int i = 0; i < mutCompMap1.size(); i++) {
+//			out1.add(mutCompMap1.get(keys1[i]));
+//		}
+//		mutCompVcf[0] = out1;
+//
+//		Object[] keys2 = mutCompMap2.keySet().toArray();
+//		for (int i = 0; i < mutCompMap2.size(); i++) {
+//			out2.add(mutCompMap2.get(keys2[i]));
+//		}
+//		mutCompVcf[1] = out2;
+//
+//		return mutCompVcf;
 
 	/**
 	 * Turns an ArrayList containing the HashMap information into a HashMap.
@@ -145,6 +162,7 @@ public class VcfFilter {
 	 * @param vcf
 	 * @return a HashMap made from the vcf file in an ArrayList.
 	 */
+	@SuppressWarnings("unused")
 	private static HashMap<String, String> filtVarsMapMaker(ArrayList<String> vcf) {
 		HashMap<String, String> mutCompMap = new HashMap<String, String>();
 
@@ -171,6 +189,7 @@ public class VcfFilter {
 	 * @return an ArrayList of size 2 with the two updated HashMaps with the first
 	 *         given map1 at position 0 and the second at position1.
 	 */
+	@SuppressWarnings("unused")
 	private static ArrayList<HashMap<String, String>> filtVarsMapUpdate(HashMap<String, String> map1,
 			HashMap<String, String> map2, ArrayList<String> vcf) {
 		ArrayList<HashMap<String, String>> out = new ArrayList<HashMap<String, String>>();
@@ -322,6 +341,7 @@ public class VcfFilter {
 	public static ArrayList<ArrayList<String>> MAFFilter(ArrayList<ArrayList<String>> children, ArrayList<String> p1,
 			ArrayList<String> p2) {
 		ArrayList<ArrayList<String>> filtered = new ArrayList<ArrayList<String>>();
+
 		for (int i = 0; i < children.size(); i++) {
 			filtered.add(filterUnMapped(children.get(i)));
 		}

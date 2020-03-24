@@ -45,49 +45,44 @@ public class VcfFilter {
 			// 1. Get all the lines that are not containing metadata.
 			if (!(line[0].startsWith("#"))) {
 				// Remove lines that have not enough coverage to have variant information.
-				if (!(line[7].contains("DP=0") || line[9].contains("./."))) {
-					String[] filtLine = line[7].split(";");
-					// Filter for the Mapping Quality.
-					if (line[7].contains("MQ")) {
-						// Filter for the Phred score Fisher’s test p-value for strand bias.
-						if (line[7].contains("FS")) {
-							// Variant Quality / depth of non-ref samples).
-							if (line[7].contains("QD")) {
-								int MQindex = 0;
-								for (int j = 0; j < Arrays.asList(filtLine).size(); j++) {
-									if (Arrays.asList(filtLine).get(j).startsWith("MQ")) {
-										MQindex = Arrays.asList(filtLine).indexOf(Arrays.asList(filtLine).get(j));
-									}
-								}
-								int FSindex = 0;
-								for (int j = 0; j < Arrays.asList(filtLine).size(); j++) {
-									if (Arrays.asList(filtLine).get(j).startsWith("FS")) {
-										FSindex = Arrays.asList(filtLine).indexOf(Arrays.asList(filtLine).get(j));
-									}
-								}
-								int QDindex = 0;
-								for (int j = 0; j < Arrays.asList(filtLine).size(); j++) {
-									if (Arrays.asList(filtLine).get(j).startsWith("QD")) {
-										QDindex = Arrays.asList(filtLine).indexOf(Arrays.asList(filtLine).get(j));
-									}
-								}
+				if (!(line[7].contains("DP=0") || line[9].contains("./.")) || line[0].split("ch")[1].equals("00")) {
+					// Filter for the Mapping Quality, Filter for the Phred score Fisher’s test
+					// p-value for strand bias, Variant Quality / depth of non-ref samples. Some
+					// lines may not contain all three variables and are cut at this point.
+					if (line[7].contains("MQ") && line[7].contains("FS") && line[7].contains("QD")) {
+						int MQindex = 0;
+						int FSindex = 0;
+						int QDindex = 0;
 
-								if (Double.parseDouble(filtLine[MQindex].split("=")[1]) < MQThreshold
-										&& Double.parseDouble(filtLine[FSindex].split("=")[1]) > FSThreshold
-										&& Double.parseDouble(filtLine[QDindex].split("=")[1]) < QDThreshold) {
-									// 1.1 Get the proper label as there could be duplicate positions on the chromos
-									// include them in the key as well as the position coords.
-									String chrom = line[0].split("ch")[1];
-									if (!(chrom.equals("00"))) {
-										filtVcf.add(vcf.get(i));
-									}
-								}
+						String[] filtLine = line[7].split(";");
+						// Finds the index where the filtering variable is in the line without relying
+						// on indexes in case the positions change.
+						for (int j = 0; j < Arrays.asList(filtLine).size(); j++) {
+							if (Arrays.asList(filtLine).get(j).startsWith("MQ=")) {
+								MQindex = Arrays.asList(filtLine).indexOf(Arrays.asList(filtLine).get(j));
 							}
+						}
+						for (int j = 0; j < Arrays.asList(filtLine).size(); j++) {
+							if (Arrays.asList(filtLine).get(j).startsWith("FS=")) {
+								FSindex = Arrays.asList(filtLine).indexOf(Arrays.asList(filtLine).get(j));
+							}
+						}
+						for (int j = 0; j < Arrays.asList(filtLine).size(); j++) {
+							if (Arrays.asList(filtLine).get(j).startsWith("QD=")) {
+								QDindex = Arrays.asList(filtLine).indexOf(Arrays.asList(filtLine).get(j));
+							}
+						}
+
+						if (Double.parseDouble(filtLine[MQindex].split("=")[1]) >= MQThreshold
+								&& Double.parseDouble(filtLine[FSindex].split("=")[1]) <= FSThreshold
+								&& Double.parseDouble(filtLine[QDindex].split("=")[1]) >= QDThreshold) {
+							filtVcf.add(vcf.get(i));
 						}
 					}
 				}
 			}
 		}
+		
 		return filtVcf;
 	}
 
@@ -306,8 +301,8 @@ public class VcfFilter {
 			// Avoid the out of index error at the end.
 			if (i + 2 <= homoRuns.size()) {
 				int left = Integer.parseInt(homoRuns.get(i + 1)) - Integer.parseInt(homoRuns.get(i));
-				int right = Integer.parseInt(homoRuns.get(i + 2)) - Integer.parseInt(homoRuns.get(i+1));
-				
+				int right = Integer.parseInt(homoRuns.get(i + 2)) - Integer.parseInt(homoRuns.get(i + 1));
+
 				if (left + right < 1000) {
 					homoRuns.remove(i);
 				}
@@ -317,7 +312,7 @@ public class VcfFilter {
 		// 3. Find all the regions between the pairs of positions that correlate to the
 		// heterozygous hits.
 		for (int i = 0; i < homoRuns.size(); i++) {
-			
+
 		}
 
 		return homoRuns;

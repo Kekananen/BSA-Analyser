@@ -108,58 +108,120 @@ public class VcfFilter {
 			}
 		}
 
+		System.out.println("Done I");
+		long startTime = System.nanoTime();
+		
 		// 2. Look through the ArrayList and find the distance between all of the
 		// variables and if it is less than 1000bp remove it. The distance of the
 		// current allele i left side and right side are checked to see if they add up
 		// to 1000 or greater before removal.
-		// Holds the list of removed heterozygous positions.
+		ArrayList<String> heteroHits = new ArrayList<String>();
 		for (int i = 0; i < homoRuns.size(); i++) {
 			// Avoid the out of index error at the end.
-			if (i + 2 <= homoRuns.size()) {
+			if (i + 2 < homoRuns.size()) {
+				String[] nextInfo = homoRuns.get(i + 1).split("-");
+				String[] curInfo = homoRuns.get(i).split("-");
+
+				String chromNext = nextInfo[0];
+				String posNext = nextInfo[1];
+				String chrom = curInfo[0];
+				String pos = curInfo[1];
+				
+				String posThird = homoRuns.get(i + 2).split("-")[0];
+
 				// Make sure that the positions don't have an edge case with chromosomes not
-				// matching but positions matching.
-				if (homoRuns.get(i + 1).split("-")[0].equals(homoRuns.get(i).split("-")[0])) {
-					int left = Integer.parseInt(homoRuns.get(i + 1).split("-")[1])
-							- Integer.parseInt(homoRuns.get(i).split("-")[1]);
-					int right = Integer.parseInt(homoRuns.get(i + 2).split("-")[1])
-							- Integer.parseInt(homoRuns.get(i + 1).split("-")[1]);
+				// matching but positions are calculated using one another.
+				if (chromNext.equals(chrom)) {
+					int left = Integer.parseInt(posNext) - Integer.parseInt(pos);
+					int right = Integer.parseInt(posThird) - Integer.parseInt(posNext);
 
-					// Remove regions that less than 1000
-					if (left + right < 1000) {
-						homoRuns.remove(i);
+					// Add the regions that have more than 1000bp to a new list.
+					if (left + right >= 1000) {
+						heteroHits.add(homoRuns.get(i));
 					}
 				}
 			}
 		}
 
-		System.out.println(homoRuns);
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime);
+		System.out.println(duration);
+		System.out.println("Done II");
 
-		// 3. Find all the regions between the pairs of positions that correlate to the
-		// heterozygous hits.
-		ArrayList<String> region = new ArrayList<String>();
-		for (int i = 0; i < homoRuns.size(); i++) {
-			for (int j = 0; j < vcf.size(); j++) {
-				String[] line = vcf.get(j).split("\t");
-				if (!(line[0].startsWith("#"))) {
-					int hit = 0;
-					if (j + 2 <= homoRuns.size()) {
-						if (homoRuns.get(j + 1).split("-")[0].equals(homoRuns.get(j).split("-")[0])) {
-							if (homoRuns.get(j).split("-")[1].equals(line[1])) {
-								hit++;
-							}
-							// Add the regions in between the two regions
-							region.add(vcf.get(j));
+//		// 2.2 Get the front edge of the region to find to start of the first homozygous
+//		// position later by grabbing the first heterozygous position that fails this
+//		// case. All homozygous positions after this are by default the region before
+//		// the first "good" candidate for the casual mutation.
+//		// Add the first position that will be the starting point.
+//		ArrayList<String> homoLociF = new ArrayList<String>();
+//		ArrayList<String> heteroLociF = new ArrayList<String>();
+//		ArrayList<String> homoLociL = new ArrayList<String>();
+//		ArrayList<String> heteroLociL = new ArrayList<String>();
+//		String firstPos = homoRuns.get(0);
+//		String lastPos = homoRuns.get(homoRuns.size());
+//
+//		for (int i = 0; i < vcf.size(); i++) {
+//			String[] line = vcf.get(i).split("\t");
+//			if (!(line[0].startsWith("#"))) {
+//				// 2.3 Fill the ArrayLists until the first position is found with both
+//				// homozygous and heterozygous loci. While the chromosome is the same and the
+//				// vcf's position is less than that of the list see if it is heterozygous or
+//				// homozgous and add it to the linkened list.
+//				while ((line[0].split("ch")[1].equals(lastPos.split("-")[0]))
+//						&& Integer.parseInt(line[1]) < Integer.parseInt((firstPos.split("-")[1]))) {
+//					// If it is homozygous add it to homoLoci list otherwise to the heterozygous
+//					// list
+//					if (line[9].split(":")[0].split("/")[0].equals(line[9].split(":")[0].split("/")[1])) {
+//						homoLociF.add(line[0].split("ch")[1] + "-" + line[1]);
+//					} else {
+//						heteroLociF.add(line[0].split("ch")[1] + "-" + line[1]);
+//					}
+//				}
+//
+////				// 2.4 Fill the ArrayLists until the last position is found with both
+////				// homozygous and heterozygous.
+////				while (line[0].split("ch")[1].equals(lastPos.split("-")[0])
+////						&& Integer.parseInt(line[1]) > Integer.parseInt((lastPos.split("-")[1]))) {
+////					// If it is homozygous add it to homoLoci list otherwise to the heterozygous
+////					// list
+////					if (line[9].split(":")[0].split("/")[0].equals(line[9].split(":")[0].split("/")[1])) {
+////						homoLociL.add(line[0].split("ch")[1] + "-" + line[1]);
+////					} else {
+////						heteroLociL.add(line[0].split("ch")[1] + "-" + line[1]);
+////					}
+////				}
+//			}
+//		}
+//	
+//		System.out.println(homoLociF);
+//		System.out.println(firstPos);
 
-							if (hit == 2) {
-								hit = 0;
-								region = new ArrayList<String>();
-								homoRegions.addAll(region);
-							}
-						}
-					}
-				}
-			}
-		}
+//		// 3. Find all the regions between the pairs of positions that correlate to the
+//		// heterozygous hits.
+//		ArrayList<String> region = new ArrayList<String>();
+//		for (int i = 0; i < homoRuns.size(); i++) {
+//			for (int j = 0; j < vcf.size(); j++) {
+//				String[] line = vcf.get(j).split("\t");
+//				if (!(line[0].startsWith("#"))) {
+//					int hit = 0;
+//					if (j + 2 <= homoRuns.size()) {
+//						if (homoRuns.get(j + 1).split("-")[0].equals(homoRuns.get(j).split("-")[0])) {
+//							if (homoRuns.get(j).split("-")[1].equals(line[1])) {
+//								hit++;
+//							}
+//							// Add the regions in between the two regions
+//							region.add(vcf.get(j));
+//
+//							if (hit == 2) {
+//								hit = 0;
+//								region = new ArrayList<String>();
+//								homoRegions.addAll(region);
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
 
 		return homoRuns;
 	}

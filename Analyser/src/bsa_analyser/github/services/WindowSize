@@ -1,0 +1,46 @@
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
+/**
+ *
+ * @author Tien Tang
+ *
+ *Once the vcf files have been read in, the maximum window size can be set by getting the minimum chromosome length.
+ * This class returns a single integer value that is the maximum window size.
+ */
+public class WindowSize {
+     public int MaximumWindowSize(ArrayList<String> file) { //accepts one vcf file as an ArrayList.
+        
+        //Step 1. Store the chromosome lengths.
+        
+        Iterator fileIter = file.iterator(); //iterate through file
+        HashMap<String, Integer> chromLengthList = new HashMap<String, Integer>(); //store contig length
+        while(fileIter.hasNext()) {
+            String variant = fileIter.next().toString();
+            if (variant.toString().startsWith("##contig")) {
+                String chromNo = variant.split("=|,")[2];
+                int length = Integer.parseInt(variant.split("=|,|>")[4]);
+                chromLengthList.put(chromNo,length);
+            } else {
+                continue;
+            }
+            
+        };
+        
+        //Step 2. Find smallest value
+        int smallestChrom = Integer.MAX_VALUE; //set maximum value
+        Iterator chromIter = chromLengthList.keySet().iterator(); //then iterate through
+        while (chromIter.hasNext()) { //whilst there is a next chromosome number
+            int chromSize =  chromLengthList.get(chromIter.next().toString()); //
+            if (chromSize < smallestChrom) { //if the next chromosome length is smaller than the current smallest length
+                smallestChrom = chromSize; //then replace with that chromsome length.
+            }
+            
+        }
+        //System.out.println(chromLengthList.get(chromLengthList.containsValue(smallestChrom)));
+        
+        return smallestChrom;
+     }
+}

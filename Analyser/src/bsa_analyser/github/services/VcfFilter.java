@@ -115,7 +115,7 @@ public class VcfFilter {
 
 		HashMap<String, String> mutCompMap1 = filtVarsMapMaker(vcf1);
 		HashMap<String, String> mutCompMap2 = filtVarsMapMaker(vcf2);
-		
+
 		ArrayList<HashMap<String, String>> run1 = filtVarsMapUpdate(mutCompMap1, mutCompMap2, vcf1);
 		mutCompMap1 = run1.get(0);
 		mutCompMap2 = run1.get(1);
@@ -198,7 +198,7 @@ public class VcfFilter {
 		}
 		out.add(map1);
 		out.add(map2);
-		
+
 		return out;
 	}
 
@@ -280,6 +280,47 @@ public class VcfFilter {
 		out[1] = norm;
 		System.out.println(out[0]);
 		return out;
+	}
+
+	public static ArrayList<String> homoRunFinder(ArrayList<String> vcf) {
+		ArrayList<String> homoRuns = new ArrayList<String>();
+		// 1. Find the positons that are homozygous and add them to an arrayList.
+		for (int i = 0; i < vcf.size(); i++) {
+			String[] line = vcf.get(i).split("\t");
+			if (!(line[0].startsWith("#"))) {
+				// Either Homozygous or Heterozygous variant based on GT in column 9 variable 1.
+				String type = line[9].split(":")[0];
+				// If it is a Heterozygous allele then add the position to the ArrayList.
+				if (!(type.split("/")[0].equals(type.split("/")[1]))) {
+					homoRuns.add(line[0].split("ch")[1] + "-" + line[1]);
+				}
+			}
+		}
+
+		// 2. Look through the ArrayList and find the distance between all of the
+		// variables and if it is less than 1000bp remove it. The distance of the
+		// current allele i left side and right side are checked to see if they add up
+		// to 1000 or greater before removal.
+		// Holds the list of removed heterozygous positions.
+		for (int i = 0; i < homoRuns.size(); i++) {
+			// Avoid the out of index error at the end.
+			if (i + 2 <= homoRuns.size()) {
+				int left = Integer.parseInt(homoRuns.get(i + 1)) - Integer.parseInt(homoRuns.get(i));
+				int right = Integer.parseInt(homoRuns.get(i + 2)) - Integer.parseInt(homoRuns.get(i+1));
+				
+				if (left + right < 1000) {
+					homoRuns.remove(i);
+				}
+			}
+		}
+
+		// 3. Find all the regions between the pairs of positions that correlate to the
+		// heterozygous hits.
+		for (int i = 0; i < homoRuns.size(); i++) {
+			
+		}
+
+		return homoRuns;
 	}
 
 	public int getMQThreshold() {

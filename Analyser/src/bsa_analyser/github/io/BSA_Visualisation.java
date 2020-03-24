@@ -246,7 +246,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
             } else {
 
-
+                int user_option = JOptionPane.showConfirmDialog(null, "The file " + fn.getName() + " does not appear to be ");
                 
 
             }

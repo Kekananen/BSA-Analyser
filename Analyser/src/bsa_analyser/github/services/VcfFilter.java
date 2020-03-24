@@ -45,7 +45,7 @@ public class VcfFilter {
 			// 1. Get all the lines that are not containing metadata.
 			if (!(line[0].startsWith("#"))) {
 				// Remove lines that have not enough coverage to have variant information.
-				if (!(line[7].contains("DP=0") || line[9].contains("./.")) || line[0].split("ch")[1].equals("00")) {
+				if (!(line[7].contains("DP=0") || line[9].contains("./.") || line[0].split("ch")[1].equals("00"))) {
 					// Filter for the Mapping Quality, Filter for the Phred score Fisher’s test
 					// p-value for strand bias, Variant Quality / depth of non-ref samples. Some
 					// lines may not contain all three variables and are cut at this point.
@@ -82,8 +82,86 @@ public class VcfFilter {
 				}
 			}
 		}
-		
+
 		return filtVcf;
+	}
+
+	/**
+	 * 
+	 * @param vcf
+	 * @return
+	 */
+	public static ArrayList<String> homoRunFinder(ArrayList<String> vcf) {
+		ArrayList<String> homoRuns = new ArrayList<String>();
+		ArrayList<String> homoRegions = new ArrayList<String>();
+		// 1. Find the positons that are the inversrse of the homozygous positions and
+		// add them to an arrayList.
+		for (int i = 0; i < vcf.size(); i++) {
+			String[] line = vcf.get(i).split("\t");
+			if (!(line[0].startsWith("#"))) {
+				// Either Homozygous or Heterozygous variant based on GT in column 9 variable 1.
+				String type = line[9].split(":")[0];
+				// If it is a Heterozygous allele then add the position to the ArrayList.
+				if (!(type.split("/")[0].equals(type.split("/")[1]))) {
+					homoRuns.add(line[0].split("ch")[1] + "-" + line[1]);
+				}
+			}
+		}
+
+		// 2. Look through the ArrayList and find the distance between all of the
+		// variables and if it is less than 1000bp remove it. The distance of the
+		// current allele i left side and right side are checked to see if they add up
+		// to 1000 or greater before removal.
+		// Holds the list of removed heterozygous positions.
+		for (int i = 0; i < homoRuns.size(); i++) {
+			// Avoid the out of index error at the end.
+			if (i + 2 <= homoRuns.size()) {
+				// Make sure that the positions don't have an edge case with chromosomes not
+				// matching but positions matching.
+				if (homoRuns.get(i + 1).split("-")[0].equals(homoRuns.get(i).split("-")[0])) {
+					int left = Integer.parseInt(homoRuns.get(i + 1).split("-")[1])
+							- Integer.parseInt(homoRuns.get(i).split("-")[1]);
+					int right = Integer.parseInt(homoRuns.get(i + 2).split("-")[1])
+							- Integer.parseInt(homoRuns.get(i + 1).split("-")[1]);
+
+					// Remove regions that less than 1000
+					if (left + right < 1000) {
+						homoRuns.remove(i);
+					}
+				}
+			}
+		}
+
+		System.out.println(homoRuns);
+
+		// 3. Find all the regions between the pairs of positions that correlate to the
+		// heterozygous hits.
+		ArrayList<String> region = new ArrayList<String>();
+		for (int i = 0; i < homoRuns.size(); i++) {
+			for (int j = 0; j < vcf.size(); j++) {
+				String[] line = vcf.get(j).split("\t");
+				if (!(line[0].startsWith("#"))) {
+					int hit = 0;
+					if (j + 2 <= homoRuns.size()) {
+						if (homoRuns.get(j + 1).split("-")[0].equals(homoRuns.get(j).split("-")[0])) {
+							if (homoRuns.get(j).split("-")[1].equals(line[1])) {
+								hit++;
+							}
+							// Add the regions in between the two regions
+							region.add(vcf.get(j));
+
+							if (hit == 2) {
+								hit = 0;
+								region = new ArrayList<String>();
+								homoRegions.addAll(region);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return homoRuns;
 	}
 
 	/**
@@ -273,49 +351,8 @@ public class VcfFilter {
 		}
 		out[0] = mut;
 		out[1] = norm;
-		System.out.println(out[0]);
+
 		return out;
-	}
-
-	public static ArrayList<String> homoRunFinder(ArrayList<String> vcf) {
-		ArrayList<String> homoRuns = new ArrayList<String>();
-		// 1. Find the positons that are homozygous and add them to an arrayList.
-		for (int i = 0; i < vcf.size(); i++) {
-			String[] line = vcf.get(i).split("\t");
-			if (!(line[0].startsWith("#"))) {
-				// Either Homozygous or Heterozygous variant based on GT in column 9 variable 1.
-				String type = line[9].split(":")[0];
-				// If it is a Heterozygous allele then add the position to the ArrayList.
-				if (!(type.split("/")[0].equals(type.split("/")[1]))) {
-					homoRuns.add(line[0].split("ch")[1] + "-" + line[1]);
-				}
-			}
-		}
-
-		// 2. Look through the ArrayList and find the distance between all of the
-		// variables and if it is less than 1000bp remove it. The distance of the
-		// current allele i left side and right side are checked to see if they add up
-		// to 1000 or greater before removal.
-		// Holds the list of removed heterozygous positions.
-		for (int i = 0; i < homoRuns.size(); i++) {
-			// Avoid the out of index error at the end.
-			if (i + 2 <= homoRuns.size()) {
-				int left = Integer.parseInt(homoRuns.get(i + 1)) - Integer.parseInt(homoRuns.get(i));
-				int right = Integer.parseInt(homoRuns.get(i + 2)) - Integer.parseInt(homoRuns.get(i + 1));
-
-				if (left + right < 1000) {
-					homoRuns.remove(i);
-				}
-			}
-		}
-
-		// 3. Find all the regions between the pairs of positions that correlate to the
-		// heterozygous hits.
-		for (int i = 0; i < homoRuns.size(); i++) {
-
-		}
-
-		return homoRuns;
 	}
 
 	public int getMQThreshold() {

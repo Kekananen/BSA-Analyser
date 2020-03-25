@@ -5,7 +5,11 @@
  */
 package bsa_analyser.github.io;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import java.nio.file.Files;
@@ -56,6 +60,25 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         groupButton();
 
     }
+        /**
+     * Creates an arraylist of Strings from a VCF file
+     *
+     * @return An Arraylist of strings list of user files
+     */
+    
+    public static ArrayList<String> vcf_lines(File vcf) throws FileNotFoundException, IOException {
+        ArrayList<String> vcf_array= new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new FileReader(vcf.toString()));
+        //loop over the given vcf file and add it to an arraylist
+        String line_vcf_content;
+                while ((line_vcf_content = reader.readLine()) != null){
+                    vcf_array.add(line_vcf_content);
+                }
+        
+        return vcf_array;
+        
+    }
+    
 
     /**
      * Creates a file child_chooser window to allow the user to select a file
@@ -148,6 +171,11 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         //return files;
     }
 
+    /**
+     * 
+     * @param Either WT/ MT or blank to allow the suer to know which type of VCF they need to upload 
+     * @return 
+     */
     public static ArrayList<File> phenotype_selector(String message) {
         file_val = 0;
         ArrayList<File> phenotype_files = new ArrayList<>();
@@ -293,6 +321,12 @@ public class BSA_Visualisation extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * This method clears all essential global variables and clears the text areas 
+     * to allow the user to select an additional analysis without the files and information
+     * from the other files being present. 
+     */
+    
     public void reset_analysis() {
         listModelOfSelectedFile.removeAllElements();
        
@@ -892,6 +926,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
             files_to_display[2] = child_files_wt;
             files_to_display[0] = child_files_mt;
             set_text_area(files_to_display);
+            
         }
 
 
@@ -920,20 +955,41 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
     private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton3ActionPerformed
         reset_analysis();
+        ArrayList<String> wt_vcf = new ArrayList<>();
+        ArrayList<String> mt_vcf= new ArrayList<>();
+        //Set the global variable to AD which will ask the user for the files associated with this method
         analysisType = "AD";
         upload_files();
+        //If the method returns two vcf files
         if (child_files_wt != null & child_files_mt != null) {
+            //change the single files into an array
             File[] files_to_print = new File[2];
             files_to_print[0] = child_files_wt;
             files_to_print[1] = child_files_mt;
-
+            //Send them to the method which prints it to the text area on the
+            //side of the GUI
             set_text_area(files_to_print);
-            //set_text_area(child_files_mt);
+            //send the files to a method which converts the files to an ArrayList
+            //of Strings
+            try {
+                wt_vcf = vcf_lines(child_files_wt);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            
+            try {
+                mt_vcf = vcf_lines(child_files_mt);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            
+            
         }
     }//GEN-LAST:event_jRadioButton3ActionPerformed
 
     private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
         reset_analysis();
+        //Set the global variable to Homozygosity Mapping which will ask the user for the files associated with this method
         analysisType = "HM";
         upload_files();
         File[] files_to_print = new File[1];

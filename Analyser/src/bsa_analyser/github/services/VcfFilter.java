@@ -91,219 +91,357 @@ public class VcfFilter {
 	 * @param vcf
 	 * @return
 	 */
-	public static ArrayList<String> homoRunFinder(ArrayList<String> vcf) {
-		ArrayList<String> homoRuns = new ArrayList<String>();
-		ArrayList<String> homoRegions = new ArrayList<String>();
-		// 1. Find the positons that are the inversrse of the homozygous positions and
-		// add them to an arrayList.
+	public static ArrayList<String> ROHFinder(ArrayList<String> vcf) {
+		ArrayList<ArrayList<String>> homoRegions = new ArrayList<ArrayList<String>>();
+		ArrayList<String> varList = new ArrayList<String>();
+		ArrayList<String> out = new ArrayList<String>();
+		// 1. Find the positons that are homozygous positions and add them to the list
+		// of of homozygousity. Homozygous variants are added as there are less of them
+		// to go through compared to the heterozygous variants.
 		for (int i = 0; i < vcf.size(); i++) {
 			String[] line = vcf.get(i).split("\t");
 			if (!(line[0].startsWith("#"))) {
 				// Either Homozygous or Heterozygous variant based on GT in column 9 variable 1.
 				String type = line[9].split(":")[0];
-				// If it is a Heterozygous allele then add the position to the ArrayList.
-				if (!(type.split("/")[0].equals(type.split("/")[1]))) {
-					homoRuns.add(line[0].split("ch")[1] + "-" + line[1]);
-				}
+				// Add variant to list
+				varList.add(line[0].split("ch")[1] + "-" + line[1] + "-" + type);
+
 			}
 		}
 
-		// 2. Look through the ArrayList and find the distance between all of the
-		// variables and if it is less than 1000bp remove it. The distance of the
-		// current allele i left side and right side are checked to see if they add up
-		// to 1000 or greater before removal.
-		ArrayList<String> heteroHits = new ArrayList<String>();
-		for (int i = 0; i < homoRuns.size(); i++) {
-			// Avoid the out of index error at the end.
-			if (i + 2 < homoRuns.size()) {
-				String[] nextInfo = homoRuns.get(i + 1).split("-");
-				String[] curInfo = homoRuns.get(i).split("-");
+		System.out.println("ROH I Done");
 
-				String chromNext = nextInfo[0];
-				String posNext = nextInfo[1];
-				String chrom = curInfo[0];
-				String pos = curInfo[1];
+		// Holds the runs of homozygosity that are of a given parameter designated by
+		// the user.
+		ArrayList<String> regions = new ArrayList<String>();
+		// 2. Look through the homozygous variant ArrayList and when there is a
+		// homozygous variant, start adding the distance between the direct sequential
+		// variants that are homozygous until the second heterozygous variant is hit.
+		int homoBPCnt = 0;
+		boolean hit = false;
+		for (int i = 0; i < varList.size(); i++) {
+			// Checks to see if the position will be out of bounds for the next index.
+			if (i + 1 < varList.size()) {
+				String[] varInfo = varList.get(i).split("-");
+				String[] varNextInfo = varList.get(i + 1).split("-");
+				if (i - 1 >= 0) {
+					String[] varprevInfo = varList.get(i - 1).split("-");
 
-				String posThird = homoRuns.get(i + 2).split("-")[1];
+					String chrom = varInfo[0];
+					String pos = varInfo[1];
+					String var = varInfo[2];
 
-				// Make sure that the positions don't have an edge case with chromosomes not
-				// matching but positions are calculated using one another.
-				if (chromNext.equals(chrom)) {
-					int left = Integer.parseInt(posNext) - Integer.parseInt(pos);
-					int right = Integer.parseInt(posThird) - Integer.parseInt(posNext);
+					String chromNext = varNextInfo[0];
+					String posNext = varNextInfo[1];
+					String varNext = varNextInfo[2];
 
-					// Add the regions that have more than 1000bp to a new list.
-					if (left + right >= 1000) {
-						heteroHits.add(homoRuns.get(i));
-					}
-				}
-			}
-		}
+					String chromPrev = varprevInfo[0];
+					String posPrev = varprevInfo[1];
+					String varPrev = varprevInfo[2];
 
-		// 2.2 Get the front edge of the region to find to start of the first homozygous
-		// position later by grabbing the first heterozygous position that fails this
-		// case. All homozygous positions after this are by default the region before
-		// the first "good" candidate for the casual mutation.
-		// Add the first position that will be the starting point.
-		ArrayList<String> homoLociF = new ArrayList<String>();
-		ArrayList<String> heteroLociF = new ArrayList<String>();
-		ArrayList<String> homoLociL = new ArrayList<String>();
-		ArrayList<String> heteroLociL = new ArrayList<String>();
-		String firstPos = heteroHits.get(0);
-		String lastPos = heteroHits.get(heteroHits.size() - 1);
+					// Make sure that only those in the same chromosome are compared to each other.
+					if (chrom.equals(chromNext)) {
+						// Don't start adding region to the list until a homozygous locus is seen.
+						// Case 1: Homozygous to Homozygous loci.
+						if ((var.split("/")[0].equals(var.split("/")[1])
+								&& varNext.split("/")[0].equals(varNext.split("/")[1]))
+								|| (!(varPrev.split("/")[0].equals(varPrev.split("/")[1]))
+										&& var.split("/")[0].equals(var.split("/")[1])
+										&& varNext.split("/")[0].equals(varNext.split("/")[1]))) {
 
-		// Just go through the file and get the possible positions for the first
-		// heterozygote.
-		for (int i = 0; i < vcf.size(); i++) {
-			String[] line = vcf.get(i).split("\t");
-			if (!(line[0].startsWith("#"))) {
-				// 2.3 Fill the ArrayLists until the first position is found with both
-				// homozygous and heterozygous loci. While the chromosome is the same and the
-				// vcf's position is less than that of the list see if it is heterozygous or
-				// homozgous and add it to the linkened list.
-				if ((line[0].split("ch")[1].equals(firstPos.split("-")[0]))
-						&& Integer.parseInt(line[1]) < Integer.parseInt((firstPos.split("-")[1]))) {
-					// If it is homozygous add it to homoLoci list otherwise to the heterozygous
-					// list
-					if (line[9].split(":")[0].split("/")[0].equals(line[9].split(":")[0].split("/")[1])) {
-						homoLociF.add(line[0].split("ch")[1] + "-" + line[1]);
-					} else {
-						heteroLociF.add(line[0].split("ch")[1] + "-" + line[1]);
-					}
-				} else {
-					// Save computational time by breaking out once criteria is met.
-					break;
-				}
-			}
-		}
-		// Do the same for the final position.
-		for (int i = 0; i < vcf.size(); i++) {
-			String[] line = vcf.get(i).split("\t");
-			if (!(line[0].startsWith("#"))) {
-				// 2.4 Fill the ArrayLists until the last position is found with both
-				// homozygous and heterozygous.
-				if (line[0].split("ch")[1].equals(lastPos.split("-")[0])
-						&& Integer.parseInt(line[1]) > Integer.parseInt((lastPos.split("-")[1]))) {
-					// If it is homozygous add it to homoLoci list otherwise to the heterozygous
-					// list.
-					if (line[9].split(":")[0].split("/")[0].equals(line[9].split(":")[0].split("/")[1])) {
-						homoLociL.add(line[0].split("ch")[1] + "-" + line[1]);
-					} else {
-						heteroLociL.add(line[0].split("ch")[1] + "-" + line[1]);
-					}
-				}
-			} else {
-				// Save computational time by breaking out once criteria is met.
-				break;
-			}
-		}
-
-		// 2.3 Calculate the starting distance on the left and right side for the
-		// firstEdge case and add it to the list as the first position if it is truly
-		// valid.
-		if (heteroLociF.size() != 0 && homoLociF.size() == 0) {
-			String[] hetInfo = heteroLociF.get(heteroLociF.size() - 1).split("-");
-			String pos = hetInfo[heteroLociF.size() - 1];
-
-			int left = Integer.parseInt(firstPos.split("-")[1]) - Integer.parseInt(pos);
-			int right = Integer.parseInt(heteroHits.get(1).split("-")[1]) - Integer.parseInt(firstPos.split("-")[1]);
-
-			// Add the regions that have more than 1000bp to a new list.
-			if (left + right >= 1000) {
-				heteroHits.add(0, firstPos.split("-")[0] + "-" + pos);
-			}
-		} else if (homoLociF.size() != 0 && heteroLociF.size() == 0) {
-			String[] homoInfo = homoLociF.get(homoLociF.size() - 1).split("-");
-			String pos = homoInfo[homoInfo.length - 1];
-
-			int left = Integer.parseInt(firstPos.split("-")[1]) - Integer.parseInt(pos);
-			int right = Integer.parseInt(heteroHits.get(1).split("-")[1]) - Integer.parseInt(firstPos.split("-")[1]);
-
-			if (left + right >= 1000) {
-				// Since it is a homozygous point, it should be included later and is thus
-				// marked for later when searching.
-				heteroHits.add(0, firstPos.split("-")[0] + "-" + pos + "HOMO");
-			}
-		}
-
-		// 2.4 Calculate the starting distance on the left and right side for the
-		// backEdge case and add it to the list as the first position if it is truly
-		// valid.
-		if (heteroLociL.size() != 0 && homoLociL.size() == 0) {
-			String[] hetInfo = heteroLociL.get(heteroLociL.size() - 1).split("-");
-			String pos = hetInfo[1];
-
-			int left = Integer.parseInt(heteroHits.get(1).split("-")[1]) - Integer.parseInt(firstPos.split("-")[1]);
-			int right = Integer.parseInt(heteroLociL.get(heteroLociL.size() - 1).split("-")[1])
-					- Integer.parseInt(lastPos.split("-")[1]);
-
-			// Add the regions that have more than 1000bp to a new list.
-			if (left + right >= 1000) {
-				heteroHits.add(0, firstPos.split("-")[0] + "-" + pos);
-			}
-		} else if (homoLociL.size() != 0 && heteroLociL.size() == 0) {
-			String[] homoInfo = homoLociF.get(homoLociF.size() - 1).split("-");
-			String pos = homoInfo[homoInfo.length - 1];
-
-			int left = Integer.parseInt(firstPos.split("-")[1]) - Integer.parseInt(pos);
-			int right = Integer.parseInt(firstPos.split("-")[1])
-					- Integer.parseInt(heteroHits.get(heteroHits.size() - 1).split("-")[1]);
-
-			if (left + right >= 1000) {
-				// Since it is a homozygous point, it should be included later and is thus
-				// marked for later when searching.
-				heteroHits.add(heteroHits.size() - 1, firstPos.split("-")[0] + "-" + pos + "+HOMO");
-			}
-		}
-
-		// 3. Find all the regions between the pairs of positions that correlate to the
-		// heterozygous hits.
-		ArrayList<String> region = new ArrayList<String>();
-		for (int i = 0; i < heteroHits.size(); i++) {
-			for (int j = 0; j < vcf.size(); j++) {
-				String[] line = vcf.get(j).split("\t");
-				if (!(line[0].startsWith("#"))) {
-					int hit = 0;
-					if (j + 2 < heteroHits.size()) {
-						String[] hetNextInfo = heteroHits.get(j + 1).split("-");
-						String[] hetInfo = heteroHits.get(j).split("-");
-						// If it is a homozygous position to start with.
-						if (hetNextInfo[1].contains("+HOMO") || hetInfo[1].contains("+HOMO")) {
-							if (hetNextInfo[0].split("+")[0].equals(hetInfo[0].split("+")[0])) {
-								if (hetInfo[1].equals(line[1])) {
-									hit++;
-								}
-								// Add the regions in between the two regions
-								region.add(vcf.get(j));
-
-								if (hit == 2) {
-									hit = 0;
-									region = new ArrayList<String>();
-									homoRegions.addAll(region);
-								}
+							int diff = Integer.parseInt(posNext) - Integer.parseInt(pos);
+							homoBPCnt = homoBPCnt + diff;
+							// If a heterozygous marker has yet to be seen, then calculate the difference
+							// and add it to the regions list for possible addition the the actual
+							// homoRegions list later.
+							regions.add(varList.get(i));
+							// Add variants to the regions list
+							if (hit == true && homoBPCnt >= 10000) {
+								// For testing purposes: Add regions to the ArrayList if the total count is
+								// above 10000 and the previous locus was heterozygous.
+								homoRegions.add(regions);
+								// Sets the score back to 0 as well as the list and hit marker.
+								homoBPCnt = 0;
+								regions = new ArrayList<String>();
+								hit = false;
+							} else if (homoBPCnt < 10000 && hit == true) {
+								// Then the markers where too small to make it into the list given the size
+								// criteria and the list is reset as well as the hit marker and size counter.
+								homoBPCnt = 0;
+								regions = new ArrayList<String>();
+								hit = false;
 							}
-						} else {						
-							if (hetNextInfo[0].equals(hetInfo[0])) {
-								if (hetInfo[1].equals(line[1])) {
-									hit++;
-								}
-								// Add the regions in between the two regions
-								region.add(vcf.get(j));
+							
+							if (!(varPrev.split("/")[0].equals(varPrev.split("/")[1]))
+									&& var.split("/")[0].equals(var.split("/")[1])
+									&& varNext.split("/")[0].equals(varNext.split("/")[1])) {
+								// If the previous variant is heterozygous, the current is homozygous, and the
+								// next is also homozygous.
+								regions.add(varList.get(i + 1));
 
-								if (hit == 2) {
-									hit = 0;
-									region = new ArrayList<String>();
-									homoRegions.addAll(region);
-								}
+								diff = Integer.parseInt(posNext) - Integer.parseInt(pos);
+								homoBPCnt = homoBPCnt + diff;
 							}
+
+						} else if (!(var.split("/")[0].equals(var.split("/")[1]))) {
+							// Every time there is a heterozygous allele set the hit marker to be true.
+							hit = true;
 						}
+
+					} else {
+						// Transition state to Do
 					}
 				}
+
 			}
 		}
 
-		return homoRuns;
+		// Add the
+		return varList;
 	}
+
+//	ArrayList<String> homoRegions = new ArrayList<String>();
+//		// 2. Look through the ArrayList and find the distance between all of the
+//		// variables and if it is less than 1000bp remove it. The distance of the
+//		// current allele i left side and right side are checked to see if they add up
+//		// to 1000 or greater before removal.
+//		ArrayList<String> heteroHits = new ArrayList<String>();
+//		for (int i = 0; i < homoRuns.size(); i++) {
+//			// Avoid the out of index error at the end.
+//			if (i + 2 < homoRuns.size()) {
+//				String[] nextInfo = homoRuns.get(i + 1).split("-");
+//				String[] curInfo = homoRuns.get(i).split("-");
+//
+//				String chromNext = nextInfo[0];
+//				String posNext = nextInfo[1];
+//				String chrom = curInfo[0];
+//				String pos = curInfo[1];
+//
+//				String posThird = homoRuns.get(i + 2).split("-")[1];
+//
+//				// Make sure that the positions don't have an edge case with chromosomes not
+//				// matching but positions are calculated using one another.
+//				if (chromNext.equals(chrom)) {
+//					int left = Integer.parseInt(posNext) - Integer.parseInt(pos);
+//					int right = Integer.parseInt(posThird) - Integer.parseInt(posNext);
+//
+//					// Add the regions that have more than 1000bp to a new list.
+//					if (left + right >= 1000) {
+//						heteroHits.add(homoRuns.get(i));
+//					}
+//				}
+//			}
+//		}
+//
+//		// 2.2 Get the front edge of the region to find to start of the first homozygous
+//		// position later by grabbing the first heterozygous position that fails this
+//		// case. All homozygous positions after this are by default the region before
+//		// the first "good" candidate for the casual mutation.
+//		// Add the first position that will be the starting point.
+//		ArrayList<String> homoLociF = new ArrayList<String>();
+//		ArrayList<String> heteroLociF = new ArrayList<String>();
+//		ArrayList<String> homoLociL = new ArrayList<String>();
+//		ArrayList<String> heteroLociL = new ArrayList<String>();
+//		String firstPos = heteroHits.get(0);
+//		String lastPos = heteroHits.get(heteroHits.size() - 1);
+//
+//		// Just go through the file and get the possible positions for the first
+//		// heterozygote.
+//		for (int i = 0; i < vcf.size(); i++) {
+//			String[] line = vcf.get(i).split("\t");
+//			if (!(line[0].startsWith("#"))) {
+//				// 2.3 Fill the ArrayLists until the first position is found with both
+//				// homozygous and heterozygous loci. While the chromosome is the same and the
+//				// vcf's position is less than that of the list see if it is heterozygous or
+//				// homozgous and add it to the linkened list.
+//				if ((line[0].split("ch")[1].equals(firstPos.split("-")[0]))
+//						&& Integer.parseInt(line[1]) < Integer.parseInt((firstPos.split("-")[1]))) {
+//					// If it is homozygous add it to homoLoci list otherwise to the heterozygous
+//					// list
+//					if (line[9].split(":")[0].split("/")[0].equals(line[9].split(":")[0].split("/")[1])) {
+//						homoLociF.add(line[0].split("ch")[1] + "-" + line[1]);
+//					} else {
+//						heteroLociF.add(line[0].split("ch")[1] + "-" + line[1]);
+//					}
+//				} else {
+//					// Save computational time by breaking out once criteria is met.
+//					break;
+//				}
+//			}
+//		}
+//		// Do the same for the final position.
+//		for (int i = 0; i < vcf.size(); i++) {
+//			String[] line = vcf.get(i).split("\t");
+//			if (!(line[0].startsWith("#"))) {
+//				// 2.4 Fill the ArrayLists until the last position is found with both
+//				// homozygous and heterozygous.
+//				if (line[0].split("ch")[1].equals(lastPos.split("-")[0])
+//						&& Integer.parseInt(line[1]) > Integer.parseInt((lastPos.split("-")[1]))) {
+//					// If it is homozygous add it to homoLoci list otherwise to the heterozygous
+//					// list.
+//					if (line[9].split(":")[0].split("/")[0].equals(line[9].split(":")[0].split("/")[1])) {
+//						homoLociL.add(line[0].split("ch")[1] + "-" + line[1]);
+//					} else {
+//						heteroLociL.add(line[0].split("ch")[1] + "-" + line[1]);
+//					}
+//				}
+//			} else {
+//				// Save computational time by breaking out once criteria is met.
+//				break;
+//			}
+//		}
+//
+//		System.out.println("Done I");
+//
+//		// 2.3 Calculate the starting distance on the left and right side for the
+//		// firstEdge case and add it to the list as the first position if it is truly
+//		// valid.
+//		if (heteroLociF.size() != 0 && homoLociF.size() == 0) {
+//			String[] hetInfo = heteroLociF.get(heteroLociF.size() - 1).split("-");
+//			String pos = hetInfo[heteroLociF.size() - 1];
+//
+//			int left = Integer.parseInt(firstPos.split("-")[1]) - Integer.parseInt(pos);
+//			int right = Integer.parseInt(heteroHits.get(1).split("-")[1]) - Integer.parseInt(firstPos.split("-")[1]);
+//
+//			// Add the regions that have more than 1000bp to a new list.
+//			if (left + right >= 1000) {
+//				heteroHits.add(0, firstPos.split("-")[0] + "-" + pos);
+//			}
+//		} else if (homoLociF.size() != 0 && heteroLociF.size() == 0) {
+//			String[] homoInfo = homoLociF.get(homoLociF.size() - 1).split("-");
+//			String pos = homoInfo[homoInfo.length - 1];
+//
+//			int left = Integer.parseInt(firstPos.split("-")[1]) - Integer.parseInt(pos);
+//			int right = Integer.parseInt(heteroHits.get(1).split("-")[1]) - Integer.parseInt(firstPos.split("-")[1]);
+//
+//			if (left + right >= 1000) {
+//				// Since it is a homozygous point, it should be included later and is thus
+//				// marked for later when searching.
+//				heteroHits.add(0, firstPos.split("-")[0] + "-" + pos + "HOMO");
+//			}
+//		}
+//
+//		System.out.println("Done II");
+//
+//		// 2.4 Calculate the starting distance on the left and right side for the
+//		// backEdge case and add it to the list as the first position if it is truly
+//		// valid.
+//		if (heteroLociL.size() != 0 && homoLociL.size() == 0) {
+//			String[] hetInfo = heteroLociL.get(heteroLociL.size() - 1).split("-");
+//			String pos = hetInfo[1];
+//
+//			int left = Integer.parseInt(heteroHits.get(1).split("-")[1]) - Integer.parseInt(lastPos.split("-")[1]);
+//			int right = Integer.parseInt(heteroLociL.get(heteroLociL.size() - 1).split("-")[1])
+//					- Integer.parseInt(lastPos.split("-")[1]);
+//
+//			// Add the regions that have more than 1000bp to a new list.
+//			if (left + right >= 1000) {
+//				heteroHits.add(heteroHits.size() - 1, lastPos.split("-")[0] + "-" + pos);
+//			}
+//		} else if (homoLociL.size() != 0 && heteroLociL.size() == 0) {
+//			String[] homoInfo = homoLociF.get(homoLociF.size() - 1).split("-");
+//			String pos = homoInfo[homoInfo.length - 1];
+//
+//			int left = Integer.parseInt(lastPos.split("-")[1]) - Integer.parseInt(pos);
+//			int right = Integer.parseInt(lastPos.split("-")[1])
+//					- Integer.parseInt(heteroHits.get(heteroHits.size() - 1).split("-")[1]);
+//
+//			if (left + right >= 1000) {
+//				// Since it is a homozygous point, it should be included later and is thus
+//				// marked for later when searching.
+//				heteroHits.add(heteroHits.size() - 1, lastPos.split("-")[0] + "-" + pos + "+HOMO");
+//			}
+//		}
+//
+//		System.out.println(heteroHits);
+//
+//		System.out.println("Done III");
+//
+//		// 3. Find all the regions between the pairs of positions that correlate to the
+//		// heterozygous hits.
+//		ArrayList<String> region = new ArrayList<String>();
+//		for (int i = 0; i < heteroHits.size(); i++) {
+//			for (int j = 0; j < vcf.size(); j++) {
+//				String[] line = vcf.get(j).split("\t");
+//				if (!(line[0].startsWith("#"))) {
+//					// Counts the number of times a heterozygous allele is seen
+//					int hit = 0;
+//					if (i + 1 < heteroHits.size()) {
+//						String[] hetInfo = heteroHits.get(i).split("-");
+//						String[] hetNextInfo = heteroHits.get(i + 1).split("-");
+//						// If only the first position contains the homozygous marker since it will be
+//						// the only place that does then split it off at the index to the list.
+//						if (!(heteroHits.get(0).split("-")[1].contains("+HOMO"))) {
+//							// As long as it stays on the same chromosome.
+//							if (hetInfo[0].equals(hetNextInfo[0])) {
+//								// Add the region to the list temporarily.
+//								region.add(vcf.get(j));
+//
+//								// If the one of the positions is found in the list and it is not the first
+//								// value.
+//								if (Integer.parseInt(hetInfo[1]) == Integer.parseInt((hetNextInfo[1]))) {
+//									hit++;
+//								}
+//
+//								if (hit == 2) {
+//									// Find the next nearest
+//
+//									hit = 1;
+//									region = new ArrayList<String>();
+//									homoRegions.addAll(region);
+//								}
+//
+//							}
+//						}
+//					}
+//
+//					// Counts the number of times a heterozygous allele is seen
+//					int hit = 0;
+//					if (j + 1 < heteroHits.size()) {
+//						String[] hetNextInfo = heteroHits.get(j + 1).split("-");
+//						String[] hetInfo = heteroHits.get(j).split("-");
+//						// If only the first position contains the homozygous marker since it will be
+//						// the only place that does then split it off and att the index to the list.
+//						if (heteroHits.get(0).split("-")[1].contains("+HOMO")) {
+//							if (hetNextInfo[0].split("+")[0].equals(hetInfo[0].split("+")[0])) {
+//								if (hetInfo[1].equals(line[1])) {
+//									hit++;
+//								}
+//								// Add the regions in between the two regions
+//								region.add(vcf.get(j));
+//
+//								if (hit == 2) {
+//									hit = 0;
+//									region = new ArrayList<String>();
+//									homoRegions.addAll(region);
+//								}
+//							}
+//						} else {
+//							if (hetNextInfo[0].equals(hetInfo[0])) {
+//								System.out.println(hetNextInfo[1]);
+//								System.out.println(hetInfo[1]);
+//								if (hetInfo[1].equals(line[1])) {
+//									hit++;
+//								}
+//								// Add the regions in between the two regions
+//								region.add(vcf.get(j));
+//
+//								if (hit == 2) {
+//									hit = 0;
+//									region = new ArrayList<String>();
+//									homoRegions.addAll(region);
+//									System.out.println(homoRegions);
+//								}
+//							}
+//						}
+//					}
+//	}
+//
+//	}}
+//
+//		System.out.println("Done IV");
+//		return homoRuns;
+//	}
 
 	/**
 	 * Finds the unique variants between two vcfs files, thus filtering out the

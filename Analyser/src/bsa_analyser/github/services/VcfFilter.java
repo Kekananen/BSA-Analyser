@@ -210,7 +210,7 @@ public class VcfFilter {
 
 			// Add the regions that have more than 1000bp to a new list.
 			if (left + right >= 1000) {
-				heteroHits.add(0, pos);
+				heteroHits.add(0, firstPos.split("-")[0] + "-" + pos);
 			}
 		} else if (homoLociF.size() != 0 && heteroLociF.size() == 0) {
 			String[] homoInfo = homoLociF.get(homoLociF.size() - 1).split("-");
@@ -222,7 +222,7 @@ public class VcfFilter {
 			if (left + right >= 1000) {
 				// Since it is a homozygous point, it should be included later and is thus
 				// marked for later when searching.
-				heteroHits.add(0, pos + "HOMO");
+				heteroHits.add(0, firstPos.split("-")[0] + "-" + pos + "HOMO");
 			}
 		}
 
@@ -239,7 +239,7 @@ public class VcfFilter {
 
 			// Add the regions that have more than 1000bp to a new list.
 			if (left + right >= 1000) {
-				heteroHits.add(0, pos);
+				heteroHits.add(0, firstPos.split("-")[0] + "-" + pos);
 			}
 		} else if (homoLociL.size() != 0 && heteroLociL.size() == 0) {
 			String[] homoInfo = homoLociF.get(homoLociF.size() - 1).split("-");
@@ -252,7 +252,7 @@ public class VcfFilter {
 			if (left + right >= 1000) {
 				// Since it is a homozygous point, it should be included later and is thus
 				// marked for later when searching.
-				heteroHits.add(heteroHits.size() - 1, pos + "+HOMO");
+				heteroHits.add(heteroHits.size() - 1, firstPos.split("-")[0] + "-" + pos + "+HOMO");
 			}
 		}
 
@@ -264,13 +264,26 @@ public class VcfFilter {
 				String[] line = vcf.get(j).split("\t");
 				if (!(line[0].startsWith("#"))) {
 					int hit = 0;
-					if (j + 2 <= heteroHits.size()) {
+					if (j + 2 < heteroHits.size()) {
 						String[] hetNextInfo = heteroHits.get(j + 1).split("-");
 						String[] hetInfo = heteroHits.get(j).split("-");
 						// If it is a homozygous position to start with.
 						if (hetNextInfo[1].contains("+HOMO") || hetInfo[1].contains("+HOMO")) {
-							
 							if (hetNextInfo[0].split("+")[0].equals(hetInfo[0].split("+")[0])) {
+								if (hetInfo[1].equals(line[1])) {
+									hit++;
+								}
+								// Add the regions in between the two regions
+								region.add(vcf.get(j));
+
+								if (hit == 2) {
+									hit = 0;
+									region = new ArrayList<String>();
+									homoRegions.addAll(region);
+								}
+							}
+						} else {						
+							if (hetNextInfo[0].equals(hetInfo[0])) {
 								if (hetInfo[1].equals(line[1])) {
 									hit++;
 								}

@@ -246,7 +246,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
 
             } else {
 
-                int user_option = JOptionPane.showConfirmDialog(null, "The file " + fn.getName() + " does not appear to be ");
+                int user_option = JOptionPane.showConfirmDialog(null, "The file " + fn.getName() + " wasn't recognized");
                 
 
             }
@@ -898,7 +898,11 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     }//GEN-LAST:event_Mapped_Allele_FrequencyActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-
+        
+        Create_BSA_Graph graph = new Create_BSA_Graph();
+        
+        graph.createGraph(graph.hashmap_creator(), "1");
+        System.out.println("hi");
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jList1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jList1MouseClicked
@@ -1026,7 +1030,7 @@ public class BSA_Visualisation extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
-    private javax.swing.JPanel jPanel9;
+    public static javax.swing.JPanel jPanel9;
     private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JRadioButton jRadioButton3;
     private javax.swing.JScrollPane jScrollPane1;

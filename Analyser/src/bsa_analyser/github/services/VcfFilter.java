@@ -109,8 +109,6 @@ public class VcfFilter {
 			}
 		}
 
-		System.out.println("ROH I Done");
-
 		// Holds the runs of homozygosity that are of a given parameter designated by
 		// the user.
 		ArrayList<String> regions = new ArrayList<String>();

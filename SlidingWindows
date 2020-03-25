@@ -136,29 +136,38 @@ public class SlidingWindows {
             //Spliterator exampleHS = pool.entrySet().spliterator();
             HashMap innerHS = pool.get(chrom); //get a chromosomes HashMap of regions and their list of individual variants.
             Set set = innerHS.entrySet();
-            Iterator windowIterator = set.iterator(); //get entryset of window and list of values to maintain order
+            Iterator windowIterator = innerHS.keySet().iterator(); //get entryset of window and list of values to maintain order
             HashMap<Integer, ArrayList<Double>> regionWindows = new HashMap<Integer, ArrayList<Double>>(); //holds list of windows and their values in an arraylist
 
             while (windowIterator.hasNext()) {
-                Entry<Integer, ArrayList<String>> windowAndValues = (Entry) windowIterator.next();
-                int windowNo = Integer.parseInt(windowAndValues.getKey().toString());
+                //Entry<Integer, ArrayList<String>> windowAndValues = (Entry) windowIterator.next();
+                int windowNo = Integer.parseInt(windowIterator.next().toString());
                 //
                 //String window = windowIterator.next().toString();
                 //int windowNo = Integer.parseInt(window);
-                // ArrayList<String> variantList = (ArrayList) innerHS.get(windowNo);
+                ArrayList<String> variantList = (ArrayList) innerHS.get(windowNo);
 
                 ArrayList<Double> region = new ArrayList<Double>(); //holds individual MAF estimates for a single region window.
-                //Iterator varListIter = variantList.iterator();
+                Iterator varListIter = variantList.iterator();
                 //System.out.println("Window start:" + windowNo);
-                for (String variant : windowAndValues.getValue())/*while (varListIter.hasNext())*/ {
-                    //String variant = varListIter.next().toString();
+                while (varListIter.hasNext()) {
+                    String variant = varListIter.next().toString();
 
                     //System.out.println("key: " + windowNo + "\t value: " + variant);
                     String[] line = variant.split("\t");
-
                     //System.out.println(variant);
                     double vaf = 0;
-                    if (!line[9].equals("./.")) {
+                    
+                    if (line.length != 10) {
+                        //System.out.println(variant);
+                        
+                    } else if(line == null) {
+                        //System.out.println("hit");
+                        
+                    }
+                    else {
+                    
+                    if (!line[9].equals("./.") && line.length == 10) {
 
                         if (line[7].contains("DP=0") != true) {
 
@@ -219,12 +228,12 @@ public class SlidingWindows {
 
                                 vaf = noMutantReads / (noWTreads + noMutantReads);
                                 region.add(vaf);
-                                System.out.println(variant + "\n" + vaf);
+                                //System.out.println(variant + "\n" + vaf);
                             } else {
                                 double noMutantReads = Double.parseDouble(AD.split(",")[1]);
                                 vaf = noMutantReads / Double.parseDouble(DP);
                                 region.add(vaf);
-                                System.out.println(variant + "\n" + vaf);
+                                //System.out.println(variant + "\n" + vaf);
 
                             }
 
@@ -241,17 +250,17 @@ public class SlidingWindows {
 							} */
                         } else {
                             vaf = 0;
-                            System.out.println(variant + "\n" + vaf);
+                            //System.out.println(variant + "\n" + vaf);
 
                             region.add(vaf);
                         }
                     } else {
                         vaf = 0;
-                        System.out.println(variant + "\n" + vaf);
+                        //System.out.println(variant + "\n" + vaf);
 
                         region.add(vaf);
                     }
-
+                    }
                     //region.add(vaf);
                     //System.out.println(chrom + "\t" + windowNo + "\t" + regionWindows.get(windowNo));
                 }
@@ -273,7 +282,44 @@ public class SlidingWindows {
     *The below method calculates the average for each window.
      */
     private HashMap<String, HashMap<Integer, Double>> CalculateAvgMAFEstimate(HashMap<String, HashMap<Integer, ArrayList<Double>>> regionMap) {
-        //Iterator
+        //Iterate through each window and calculate the average of the values. Return the 
+        
+        //Iterate through chromosomes
+        HashMap<String, HashMap<Integer, Double>> finalHS = new HashMap<>();
+        Iterator chromIter = regionMap.keySet().iterator();
+        while (chromIter.hasNext()) {
+            String chromNo = chromIter.next().toString();
+            HashMap<Integer, ArrayList<Double>> innerHS = regionMap.get(chromNo);
+            
+            Iterator innerHSIter = innerHS.keySet().iterator();
+            HashMap<Integer, Double> regionWindow = new HashMap<>(); //create new HS to store regions and avg value
+                
+            while (innerHSIter.hasNext()) {
+                int windowStartPos = Integer.parseInt(innerHSIter.next().toString());
+                
+                ArrayList<Double> MAFValueList = (ArrayList<Double>) innerHS.get(windowStartPos);
+                
+                double sumMAFValue = 0;
+                int noOfMAFvalues = MAFValueList.size();
+                double avgMAFValue = 0;
+                for (double indMAFValue : MAFValueList) {
+                    sumMAFValue += indMAFValue;
+                    avgMAFValue = sumMAFValue / noOfMAFvalues;
+                    
+                regionWindow.put(windowStartPos, avgMAFValue);
+                }
+                
+                
+                
+                
+                
+            }
+            finalHS.put(chromNo, regionWindow);
+                System.out.println("chromNo: " + chromNo + "\tRegionWindow: " + finalHS.get(chromNo));
+            
+        }
+        
+        
         return null;
     }
 
@@ -283,9 +329,9 @@ public class SlidingWindows {
     * a menu option picked by the user to describe the method they wanted.
     * If no method was picked, then the method will be set to default.
      */
-    public HashMap<String, HashMap<Integer, ArrayList<Double>>> CalculateWindows(ArrayList<String> file, int regionSizeInput, int incrementInput, String method) {
+    public HashMap<String, HashMap<Integer, Double>> CalculateWindows(ArrayList<String> file, int regionSizeInput, int incrementInput, String method) {
 
-        HashMap<String, HashMap<Integer, ArrayList<Double>>> values = new HashMap<String, HashMap<Integer, ArrayList<Double>>>(); //to be returned
+        HashMap<String, HashMap<Integer,Double>> values = new HashMap<String, HashMap<Integer, Double>>(); //to be returned
 
 //Iterator finalHSiter = finalHS.keySet().iterator(); //iterate through the regionWindows chromosomes
         if (method.equals("Homozygosity Mapping")) {
@@ -303,7 +349,9 @@ public class SlidingWindows {
             SlidingWindows t = new SlidingWindows();
             HashMap<String, HashMap<Integer, ArrayList<String>>> indRegionWindowsHS = t.CreateRegionWindows(file, regionSizeInput, incrementInput);
 
-            values = t.freqFinder(indRegionWindowsHS);
+            HashMap indValues = t.freqFinder(indRegionWindowsHS);
+            
+            values = t.CalculateAvgMAFEstimate(indValues);
 
         } else {
             //use default method for that mapping population.

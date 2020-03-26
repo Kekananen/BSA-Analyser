@@ -43,7 +43,9 @@ public class VcfFilter {
 		for (int i = 0; i < vcf.size(); i++) {
 			String[] line = vcf.get(i).split("\t");
 			// 1. Get all the lines that are not containing metadata.
-			if (!(line[0].startsWith("#"))) {
+			if(line[0].startsWith("##")) {
+				filtVcf.add(vcf.get(i));
+			} else if (!(line[0].startsWith("#"))) {
 				// Remove lines that have not enough coverage to have variant information.
 				if (!(line[7].contains("DP=0") || line[9].contains("./.") || line[0].split("ch")[1].equals("00"))) {
 					// Filter for the Mapping Quality, Filter for the Phred score Fisher’s test
@@ -100,7 +102,9 @@ public class VcfFilter {
 		// to go through compared to the heterozygous variants.
 		for (int i = 0; i < vcf.size(); i++) {
 			String[] line = vcf.get(i).split("\t");
-			if (!(line[0].startsWith("#"))) {
+			if(line[0].startsWith("##")) {
+				out.add(vcf.get(i));
+			} else if (!(line[0].startsWith("#"))) {
 				// Either Homozygous or Heterozygous variant based on GT in column 9 variable 1.
 				String type = line[9].split(":")[0];
 				// Add variant to list
@@ -149,10 +153,28 @@ public class VcfFilter {
 
 							int diff = Integer.parseInt(posNext) - Integer.parseInt(pos);
 							homoBPCnt = homoBPCnt + diff;
-							// If a heterozygous marker has yet to be seen, then calculate the difference
-							// and add it to the regions list for possible addition the the actual
-							// homoRegions list later.
-							regions.add(varList.get(i));
+							
+							if (!(varPrev.split("/")[0].equals(varPrev.split("/")[1]))
+									&& var.split("/")[0].equals(var.split("/")[1])
+									&& varNext.split("/")[0].equals(varNext.split("/")[1])) {
+								// If the previous variant is heterozygous, the current is homozygous, and the
+								// next is also homozygous.
+								regions.add(varList.get(i));
+
+								diff = Integer.parseInt(posNext) - Integer.parseInt(pos);
+							} else if (!(varNext.split("/")[0].equals(varNext.split("/")[1]))
+									&& var.split("/")[0].equals(var.split("/")[1])
+									&& varPrev.split("/")[0].equals(varPrev.split("/")[1])) {
+								// If the previous variant is heterozygous, the current is homozygous, and the
+								// next is also homozygous.
+								regions.add(varList.get(i));
+
+								diff = Integer.parseInt(pos) - Integer.parseInt(posPrev);
+								homoBPCnt = homoBPCnt + diff;
+							} else {
+								regions.add(varList.get(i));
+							}
+							
 							// Add variants to the regions list
 							if (hit == true && homoBPCnt >= 10000) {
 								// For testing purposes: Add regions to the ArrayList if the total count is
@@ -169,18 +191,7 @@ public class VcfFilter {
 								regions = new ArrayList<String>();
 								hit = false;
 							}
-							
-							if (!(varPrev.split("/")[0].equals(varPrev.split("/")[1]))
-									&& var.split("/")[0].equals(var.split("/")[1])
-									&& varNext.split("/")[0].equals(varNext.split("/")[1])) {
-								// If the previous variant is heterozygous, the current is homozygous, and the
-								// next is also homozygous.
-								regions.add(varList.get(i + 1));
-
-								diff = Integer.parseInt(posNext) - Integer.parseInt(pos);
-								homoBPCnt = homoBPCnt + diff;
-							}
-
+							System.out.println(homoRegions);
 						} else if (!(var.split("/")[0].equals(var.split("/")[1]))) {
 							// Every time there is a heterozygous allele set the hit marker to be true.
 							hit = true;
@@ -596,7 +607,6 @@ public class VcfFilter {
 							}
 
 							if (compline[4].contains(",") && !(line[4].contains(","))) {
-								System.out.println("hit");
 								String[] alts = compline[4].split(",");
 								for (int k = 0; k < alts.length; k++) {
 									if (alts[k].equals(line[4])) {
